@@ -1,6 +1,6 @@
 # 2026 Programme
 
-[![Pages](https://github.com/OWNER/2026-movies/actions/workflows/pages/pages-build-deployment/badge.svg)](https://github.com/OWNER/2026-movies/actions/workflows/pages/pages-build-deployment)
+[![Pages](https://github.com/mdewey/2026-movies/actions/workflows/pages/pages-build-deployment/badge.svg)](https://github.com/mdewey/2026-movies/actions/workflows/pages/pages-build-deployment)
 
 A single static page that lists 43 films from the 2026 Trello board, plus a
 ranked, graded log of the ones you have watched. No server, no build step for
