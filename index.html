@@ -1,0 +1,791 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>2026 Programme</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ctext y='26' font-size='26'%3E%F0%9F%8E%AC%3C/text%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,opsz,wght@0,6..96,500;0,6..96,700;1,6..96,500&family=Archivo:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+  /* A darkened auditorium: this page commits to one visual world, so every
+     colour is painted explicitly rather than inherited from the OS theme. */
+  :root {
+    --ground:#141110; --surface:#1d1815; --ink:#f2ebdf;
+    --muted:#a2938a; --dim:#786a62; --line:#2f2621; --line-soft:#241d19;
+    --brass:#d9a441; --brass-dim:#8d6b2b;
+    --film:#0b0908;
+    --rel:#f0c46a;   --rel-bg:rgba(217,164,65,.12);  --rel-line:rgba(217,164,65,.38);
+    --soon:#e59484;  --soon-bg:rgba(176,66,50,.15);  --soon-line:rgba(200,96,80,.36);
+    --ok:#7fd6a8;
+  }
+  * { box-sizing:border-box; }
+  html { color-scheme:dark; }
+  body {
+    margin:0; background:var(--ground); color:var(--ink);
+    font-family:Archivo,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+    font-size:15px; line-height:1.55; -webkit-font-smoothing:antialiased;
+  }
+  img { max-width:100%; }
+  [hidden] { display:none !important; }
+  .wrap { position:relative; max-width:54rem; margin:0 auto; padding:0 1.25rem 5rem; }
+
+  /* ---- masthead ---- */
+  header { position:relative; padding:3.2rem 0 1.3rem; }
+  header::before {
+    content:""; position:absolute; inset:-3rem -50vw 0;
+    background:radial-gradient(60rem 22rem at 22% -4rem, rgba(217,164,65,.16), transparent 68%);
+    pointer-events:none;
+  }
+  header > * { position:relative; }
+  .eyebrow {
+    font-family:"IBM Plex Mono",ui-monospace,monospace; font-size:.68rem;
+    letter-spacing:.22em; text-transform:uppercase; color:var(--brass); margin:0 0 .85rem;
+  }
+  h1 {
+    font-family:"Bodoni Moda",Didot,"Bodoni MT",Georgia,serif;
+    font-weight:700; font-size:clamp(2.6rem,8.5vw,4.6rem); line-height:.98;
+    margin:0; letter-spacing:-.015em; text-wrap:balance;
+    text-shadow:0 0 42px rgba(217,164,65,.2);
+  }
+  .lede { color:var(--muted); margin:.95rem 0 0; max-width:46ch; font-size:.97rem; }
+  .lede em { color:var(--ink); font-style:italic; }
+  .bulbs {
+    height:9px; margin:1.5rem 0 0;
+    background-image:radial-gradient(circle at 4.5px 4.5px, var(--brass) 1.7px, transparent 2.1px);
+    background-size:19px 9px; background-repeat:repeat-x; opacity:.55;
+  }
+  .stats {
+    display:flex; flex-wrap:wrap; gap:.4rem 1.5rem; margin:1.15rem 0 0;
+    font-family:"IBM Plex Mono",ui-monospace,monospace; font-size:.72rem;
+    letter-spacing:.11em; text-transform:uppercase; color:var(--dim);
+  }
+  .stats b { color:var(--brass); font-weight:500; font-variant-numeric:tabular-nums; }
+
+  /* ---- view nav ---- */
+  .nav { display:flex; gap:.9rem; margin:1.6rem 0 0; border-bottom:1px solid var(--line); }
+  .nav button {
+    font-family:"IBM Plex Mono",ui-monospace,monospace; font-size:.72rem;
+    letter-spacing:.16em; text-transform:uppercase; cursor:pointer;
+    color:var(--dim); background:transparent; border:0;
+    border-bottom:2px solid transparent; padding:.65rem .2rem; margin-bottom:-1px;
+  }
+  .nav button:hover { color:var(--ink); }
+  .nav button[aria-selected="true"] { color:var(--brass); border-bottom-color:var(--brass); }
+  .nav .spacer { flex:1; }
+  #synctab { color:var(--dim); }
+  #synctab.on { color:var(--ok); }
+
+  /* ---- controls ---- */
+  .controls {
+    position:sticky; top:0; z-index:5;
+    background:linear-gradient(var(--ground) 78%, rgba(20,17,16,0));
+    display:flex; flex-wrap:wrap; gap:.55rem; align-items:center; padding:.9rem 0 1.1rem;
+  }
+  .filters { display:flex; gap:.4rem; }
+  .filters button {
+    font-family:"IBM Plex Mono",ui-monospace,monospace; font-size:.7rem;
+    letter-spacing:.12em; text-transform:uppercase; cursor:pointer;
+    color:var(--muted); background:transparent; border:1px solid var(--line);
+    border-radius:2px; padding:.4rem .8rem;
+  }
+  .filters button:hover { color:var(--ink); border-color:var(--brass-dim); }
+  .filters button[aria-pressed="true"] {
+    background:var(--brass); border-color:var(--brass); color:#191310; font-weight:500;
+  }
+  #q {
+    font:inherit; font-size:.85rem; flex:1; min-width:11rem; color:var(--ink);
+    background:var(--surface); border:1px solid var(--line); border-radius:2px;
+    padding:.4rem .7rem;
+  }
+  #q::placeholder { color:var(--dim); }
+  :is(button,a,input,select,textarea):focus-visible { outline:2px solid var(--brass); outline-offset:2px; }
+
+  /* ---- month groups ---- */
+  .month-head {
+    display:flex; align-items:center; gap:.9rem;
+    margin:2.6rem 0 .2rem; padding-bottom:.45rem;
+    border-bottom:1px solid var(--brass-dim);
+    font-family:"IBM Plex Mono",ui-monospace,monospace; font-weight:500;
+    font-size:.72rem; letter-spacing:.2em; text-transform:uppercase; color:var(--brass);
+  }
+  .month-head .rule { flex:1; height:1px; background:var(--line); }
+  .month-count { color:var(--dim); font-weight:400; letter-spacing:.1em; }
+  .films { list-style:none; margin:0; padding:0; }
+
+  /* ---- a film: one frame of the strip ---- */
+  .film {
+    display:grid; grid-template-columns:1.55rem 3.1rem 1fr; gap:0 1.1rem;
+    padding:1.3rem 0; border-bottom:1px solid var(--line-soft);
+  }
+  .strip {
+    background-color:var(--film);
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='24'%3E%3Crect x='4' y='7' width='8' height='10' rx='2.5' fill='%23251e19'/%3E%3C/svg%3E");
+    background-repeat:repeat-y; background-position:center top;
+    box-shadow:inset 1px 0 0 rgba(242,235,223,.06), inset -1px 0 0 rgba(242,235,223,.06);
+  }
+  .film.is-seen .strip {
+    background-color:#241a0c;
+    box-shadow:inset 1px 0 0 rgba(217,164,65,.35), inset -1px 0 0 rgba(217,164,65,.35);
+  }
+  .rail {
+    font-family:"IBM Plex Mono",ui-monospace,monospace; font-variant-numeric:tabular-nums;
+    line-height:1.12; padding-top:.2rem; text-align:right;
+  }
+  .rail-month { display:block; font-size:.63rem; letter-spacing:.16em; text-transform:uppercase; color:var(--dim); }
+  .rail-day { display:block; font-size:1.5rem; color:var(--brass); }
+  .rail-fest { font-size:.72rem; letter-spacing:.1em; text-transform:uppercase; }
+
+  .entry-head { display:flex; flex-wrap:wrap; align-items:baseline; gap:.5rem .75rem; }
+  .title {
+    font-family:"Bodoni Moda",Didot,"Bodoni MT",Georgia,serif;
+    font-weight:700; font-size:1.4rem; line-height:1.15; margin:0;
+  }
+  .title a { color:inherit; text-decoration:none; border-bottom:1px solid transparent; }
+  .title a:hover { border-bottom-color:var(--brass); }
+
+  .pill {
+    font-family:"IBM Plex Mono",ui-monospace,monospace; font-size:.6rem;
+    letter-spacing:.15em; text-transform:uppercase; white-space:nowrap;
+    padding:.2rem .5rem; border-radius:2px; border:1px solid;
+  }
+  .pill-out { color:var(--rel); background:var(--rel-bg); border-color:var(--rel-line); }
+  .pill-upcoming { color:var(--soon); background:var(--soon-bg); border-color:var(--soon-line); }
+
+  .crew { margin:.35rem 0 0; font-size:.8rem; color:var(--muted); font-style:italic; }
+  .desc { margin:.5rem 0 0; max-width:64ch; }
+  .meta { display:flex; flex-direction:column; gap:.18rem; margin-top:.6rem; font-size:.75rem; color:var(--muted); }
+  .meta .k, .yourtake .k {
+    font-family:"IBM Plex Mono",ui-monospace,monospace; font-size:.6rem;
+    letter-spacing:.15em; text-transform:uppercase; color:var(--dim); margin-right:.4rem;
+  }
+  .from { color:var(--dim); }
+  .yourtake { margin:.5rem 0 0; font-size:.85rem; color:var(--muted); max-width:60ch; }
+  .yourtake .k { color:var(--brass); }
+
+  .seen {
+    font-family:"IBM Plex Mono",ui-monospace,monospace; font-size:.6rem;
+    letter-spacing:.14em; text-transform:uppercase; cursor:pointer;
+    color:var(--dim); background:transparent; border:1px dashed var(--line);
+    border-radius:2px; padding:.22rem .55rem; white-space:nowrap;
+  }
+  .seen:hover { color:var(--ink); border-color:var(--brass-dim); }
+  .seen[aria-pressed="true"] { color:var(--rel); background:var(--rel-bg); border-style:solid; border-color:var(--rel-line); }
+  .watched-on {
+    font-family:"IBM Plex Mono",ui-monospace,monospace; font-size:.63rem;
+    letter-spacing:.1em; text-transform:uppercase; color:var(--brass);
+  }
+
+  /* ---- progress ---- */
+  .progress-wrap { margin:1.6rem 0 .5rem; }
+  .progress-strip {
+    display:flex; gap:2px; padding:5px; border-radius:2px; background:var(--film);
+    box-shadow:inset 0 1px 0 rgba(242,235,223,.06), inset 0 -1px 0 rgba(242,235,223,.06);
+    overflow:hidden;
+  }
+  .frame { flex:1 1 0; height:20px; border-radius:1px; background:#1e1712; min-width:3px; }
+  .frame.lit { background:var(--brass); box-shadow:0 0 7px rgba(217,164,65,.5); }
+  .progress-label {
+    margin:.6rem 0 0; font-family:"IBM Plex Mono",ui-monospace,monospace;
+    font-size:.72rem; letter-spacing:.12em; text-transform:uppercase; color:var(--dim);
+  }
+  .progress-label b { color:var(--brass); font-weight:500; font-variant-numeric:tabular-nums; }
+
+  /* ---- ranked & graded ---- */
+  .wlist { list-style:none; margin:1.8rem 0 0; padding:0; }
+  .wrow {
+    display:grid; grid-template-columns:2.9rem 1fr; gap:0 1.1rem;
+    padding:1.15rem 0; border-bottom:1px solid var(--line-soft);
+  }
+  .wrank {
+    font-family:"Bodoni Moda",Didot,Georgia,serif; font-weight:700; font-size:1.95rem;
+    line-height:1; color:var(--brass); text-align:right; font-variant-numeric:tabular-nums; opacity:.85;
+  }
+  .wtop { display:flex; flex-wrap:wrap; align-items:baseline; gap:.5rem .7rem; }
+  .wtitle {
+    font-family:"Bodoni Moda",Didot,Georgia,serif; font-weight:700; font-size:1.3rem;
+    line-height:1.15; margin:0;
+  }
+  .wtitle a { color:inherit; text-decoration:none; border-bottom:1px solid transparent; }
+  .wtitle a:hover { border-bottom-color:var(--brass); }
+  .gbadge {
+    font-family:"IBM Plex Mono",ui-monospace,monospace; font-size:.72rem; font-weight:500;
+    color:#191310; background:var(--brass); border-radius:2px;
+    padding:.1rem .42rem; min-width:1.9rem; text-align:center;
+  }
+  .wrow[data-grade^="D"] .gbadge,
+  .wrow[data-grade^="E"] .gbadge,
+  .wrow[data-grade^="F"] .gbadge { background:var(--soon); color:#1b0f0c; }
+  .wmeta { margin:.28rem 0 0; font-size:.79rem; color:var(--muted); font-style:italic; }
+  .wreason { margin:.45rem 0 0; max-width:60ch; }
+  .wctl { display:flex; flex-wrap:wrap; gap:.45rem; align-items:center; margin-top:.6rem; }
+  .gsel, .rin, .tin {
+    font:inherit; font-size:.82rem; color:var(--ink); background:var(--ground);
+    border:1px solid var(--line); border-radius:2px; padding:.32rem .5rem;
+  }
+  .gsel { font-family:"IBM Plex Mono",ui-monospace,monospace; font-size:.76rem; cursor:pointer; min-width:3.6rem; }
+  .rin { flex:1; min-width:12rem; }
+  .rin::placeholder, .tin::placeholder { color:var(--dim); }
+  .movers { display:flex; gap:.3rem; margin-left:auto; }
+  .mv, .rm, .ghbtn {
+    font-family:"IBM Plex Mono",ui-monospace,monospace; font-size:.62rem;
+    letter-spacing:.1em; text-transform:uppercase; cursor:pointer;
+    color:var(--dim); background:transparent; border:1px solid var(--line);
+    border-radius:2px; padding:.25rem .5rem;
+  }
+  .mv:hover:not([disabled]), .ghbtn:hover { color:var(--brass); border-color:var(--brass-dim); }
+  .mv[disabled] { opacity:.3; cursor:default; }
+  .rm:hover { color:var(--soon); border-color:var(--soon-line); }
+  .off {
+    font-family:"IBM Plex Mono",ui-monospace,monospace; font-size:.58rem;
+    letter-spacing:.14em; text-transform:uppercase; color:var(--dim);
+    border:1px solid var(--line); border-radius:2px; padding:.15rem .4rem;
+  }
+
+  .addbox {
+    margin:2.4rem 0 0; padding:1.2rem; border:1px dashed var(--line);
+    border-radius:3px; background:var(--surface);
+  }
+  .addbox h3 {
+    font-family:"IBM Plex Mono",ui-monospace,monospace; font-size:.7rem;
+    letter-spacing:.16em; text-transform:uppercase; color:var(--brass);
+    margin:0 0 .3rem; font-weight:500;
+  }
+  .addbox p { margin:0 0 .85rem; font-size:.83rem; color:var(--muted); max-width:52ch; }
+  .addrow { display:flex; flex-wrap:wrap; gap:.5rem; }
+  .addrow .tin { flex:1; min-width:13rem; }
+  .addrow button {
+    font-family:"IBM Plex Mono",ui-monospace,monospace; font-size:.7rem;
+    letter-spacing:.12em; text-transform:uppercase; cursor:pointer;
+    background:var(--brass); color:#191310; border:1px solid var(--brass);
+    border-radius:2px; padding:.4rem 1rem; font-weight:500;
+  }
+
+  /* ---- sync panel ---- */
+  .sync { margin:1.4rem 0 0; padding:1.2rem; border:1px solid var(--line); border-radius:3px; background:var(--surface); }
+  .sync h3 {
+    font-family:"IBM Plex Mono",ui-monospace,monospace; font-size:.7rem;
+    letter-spacing:.16em; text-transform:uppercase; color:var(--brass); margin:0 0 .5rem; font-weight:500;
+  }
+  .sync p { margin:0 0 .8rem; font-size:.84rem; color:var(--muted); max-width:58ch; }
+  .sync ol { margin:0 0 1rem; padding-left:1.2rem; font-size:.84rem; color:var(--muted); max-width:58ch; }
+  .sync li { margin-bottom:.35rem; }
+  .sync code {
+    font-family:"IBM Plex Mono",ui-monospace,monospace; font-size:.78rem;
+    color:var(--brass); background:var(--ground); padding:.05rem .3rem; border-radius:2px;
+  }
+  .sync a { color:var(--brass); }
+  .syncrow { display:flex; flex-wrap:wrap; gap:.5rem; align-items:center; }
+  .syncrow .tin { flex:1; min-width:15rem; }
+  .repoline {
+    margin:.9rem 0 0; font-family:"IBM Plex Mono",ui-monospace,monospace;
+    font-size:.68rem; letter-spacing:.08em; color:var(--dim);
+  }
+
+  .banner {
+    margin:1.1rem 0 0; padding:.7rem .9rem; border-radius:3px; font-size:.83rem;
+    border:1px solid var(--soon-line); background:var(--soon-bg); color:var(--soon);
+  }
+  .banner button {
+    font-family:"IBM Plex Mono",ui-monospace,monospace; font-size:.62rem;
+    letter-spacing:.1em; text-transform:uppercase; cursor:pointer; margin-left:.6rem;
+    color:inherit; background:transparent; border:1px solid currentColor;
+    border-radius:2px; padding:.15rem .5rem;
+  }
+  .empty { padding:2.6rem 0; color:var(--muted); text-align:center; max-width:46ch; margin:0 auto; }
+  .empty strong { color:var(--ink); font-weight:500; }
+
+  .chip {
+    position:fixed; right:1rem; bottom:1rem; z-index:20;
+    font-family:"IBM Plex Mono",ui-monospace,monospace; font-size:.63rem;
+    letter-spacing:.13em; text-transform:uppercase;
+    background:var(--surface); border:1px solid var(--brass-dim); color:var(--brass);
+    border-radius:2px; padding:.4rem .7rem;
+  }
+  .chip.err { border-color:var(--soon-line); color:var(--soon); }
+  .chip.ok { border-color:rgba(127,214,168,.4); color:var(--ok); }
+
+  footer {
+    margin-top:2.8rem; padding-top:1.1rem; border-top:1px solid var(--line);
+    font-size:.76rem; color:var(--dim); max-width:62ch;
+  }
+  footer a { color:var(--brass); }
+
+  @media (max-width:600px) {
+    .film { grid-template-columns:1.1rem 1fr; gap:0 .85rem; }
+    .rail { grid-column:2; display:flex; align-items:baseline; gap:.45rem; text-align:left; padding-top:0; margin-bottom:.15rem; }
+    .rail-day { font-size:1rem; }
+    .entry { grid-column:2; }
+    .strip { grid-row:1 / span 2; }
+    .frame { height:14px; }
+    .movers { margin-left:0; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap" id="root">
+  <header>
+    <p class="eyebrow">Trello board &ldquo;Things&rdquo; &middot; two lists, combined</p>
+    <h1>2026 Programme</h1>
+    <p class="lede">Loading the programme&hellip;</p>
+  </header>
+</div>
+<div class="chip" id="chip" hidden></div>
+
+<script>
+(function () {
+  "use strict";
+
+  var GRADES = ['A+','A','A-','B+','B','B-','C+','C','C-','D+','D','D-','E+','E','E-','F'];
+  var PATH = 'data/watched.json';
+
+  var FILMS = [], data = { _readme: [], films: [] };
+  var sha = null, byId = {};
+  var view = 'programme', filter = 'all', term = '', showJSON = false;
+  var dirty = false, saveTimer = null, saving = false, conflictNote = '';
+
+  var root = document.getElementById('root');
+  var chip = document.getElementById('chip');
+
+  /* ---------- where does this live ---------- */
+  // On <user>.github.io/<repo>/ the repo is implied by the URL, so there is
+  // nothing to configure. Anything else (a local file, a custom domain) can
+  // override it from the sync panel.
+  function guessRepo() {
+    var o = localStorage.getItem('gh.owner'), r = localStorage.getItem('gh.repo');
+    if (o && r) return { owner: o, repo: r, guessed: false };
+    var m = location.hostname.match(/^([^.]+)\.github\.io$/);
+    if (!m) return { owner: '', repo: '', guessed: false };
+    var seg = location.pathname.split('/').filter(Boolean);
+    return { owner: m[1], repo: seg.length ? seg[0] : m[1] + '.github.io', guessed: true };
+  }
+  function cfg() {
+    var g = guessRepo();
+    return {
+      owner: g.owner, repo: g.repo, guessed: g.guessed,
+      branch: localStorage.getItem('gh.branch') || 'main',
+      token: localStorage.getItem('gh.token') || ''
+    };
+  }
+  function connected() { var c = cfg(); return !!(c.token && c.owner && c.repo); }
+
+  /* ---------- helpers ---------- */
+  function esc(s) {
+    return String(s == null ? '' : s)
+      .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+      .replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+  }
+  function b64encode(str) {
+    var bytes = new TextEncoder().encode(str), bin = '';
+    bytes.forEach(function (b) { bin += String.fromCharCode(b); });
+    return btoa(bin);
+  }
+  function b64decode(s) {
+    var bin = atob(String(s).replace(/\s/g, ''));
+    var bytes = Uint8Array.from(bin, function (c) { return c.charCodeAt(0); });
+    return new TextDecoder().decode(bytes);
+  }
+  function say(msg, kind) {
+    chip.hidden = false;
+    chip.textContent = msg;
+    chip.className = 'chip' + (kind ? ' ' + kind : '');
+    if (kind === 'ok') setTimeout(function () { chip.hidden = true; }, 2200);
+  }
+  function ordered() { return data.films.slice().sort(function (a,b) { return a.rank - b.rank; }); }
+  function renumber() { ordered().forEach(function (e,i) { e.rank = i + 1; }); }
+  function entryFor(id) {
+    return data.films.filter(function (e) { return e.filmId === id; })[0] || null;
+  }
+  function boardSeen() { return data.films.filter(function (e) { return e.filmId; }).length; }
+  function keyOf(e) { return e.filmId || ('off:' + e.title); }
+
+  /* ---------- load ---------- */
+  async function loadFilms() {
+    var r = await fetch('data/films.json', { cache: 'no-cache' });
+    if (!r.ok) throw new Error('films.json ' + r.status);
+    FILMS = await r.json();
+    FILMS.forEach(function (f) { byId[f.id] = f; });
+  }
+
+  // Prefer the GitHub API: it reflects a commit immediately, while the Pages
+  // CDN can serve a stale copy for up to a minute after a save.
+  async function loadWatched() {
+    var c = cfg();
+    if (c.owner && c.repo) {
+      try {
+        var h = { 'Accept': 'application/vnd.github+json' };
+        if (c.token) h.Authorization = 'Bearer ' + c.token;
+        var url = 'https://api.github.com/repos/' + c.owner + '/' + c.repo
+                + '/contents/' + PATH + '?ref=' + encodeURIComponent(c.branch);
+        var r = await fetch(url, { headers: h, cache: 'no-store' });
+        if (r.ok) {
+          var j = await r.json();
+          sha = j.sha;
+          data = JSON.parse(b64decode(j.content));
+          return 'api';
+        }
+      } catch (e) { /* fall through to the static copy */ }
+    }
+    var s = await fetch(PATH + '?t=' + Date.now(), { cache: 'no-store' });
+    if (!s.ok) throw new Error('watched.json ' + s.status);
+    data = await s.json();
+    sha = null;
+    return 'static';
+  }
+
+  /* ---------- save ---------- */
+  function queueSave() {
+    dirty = true;
+    try { localStorage.setItem('watched.draft', JSON.stringify(data)); } catch (e) {}
+    if (!connected()) { say('Not saved — connect to sync', 'err'); return; }
+    if (saveTimer) clearTimeout(saveTimer);
+    say('Saving…');
+    saveTimer = setTimeout(commit, 1200);
+  }
+
+  async function commit(isRetry) {
+    if (saving) return;
+    saving = true;
+    var c = cfg();
+    try {
+      if (sha === null) await refreshSha();
+      var body = {
+        message: 'Update watched list',
+        content: b64encode(JSON.stringify(data, null, 2) + '\n'),
+        branch: c.branch
+      };
+      if (sha) body.sha = sha;
+      var r = await fetch('https://api.github.com/repos/' + c.owner + '/' + c.repo + '/contents/' + PATH, {
+        method: 'PUT',
+        headers: {
+          'Authorization': 'Bearer ' + c.token,
+          'Accept': 'application/vnd.github+json',
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(body)
+      });
+      if (r.status === 409 || r.status === 422) {
+        // Someone (or another device) committed first. Take their sha and
+        // apply this device's copy on top — last writer wins.
+        if (!isRetry) {
+          await refreshSha();
+          saving = false;
+          conflictNote = 'The file had changed elsewhere; your version was written over it.';
+          return commit(true);
+        }
+        throw new Error('conflict');
+      }
+      if (r.status === 401 || r.status === 403) throw new Error('auth');
+      if (!r.ok) throw new Error('http ' + r.status);
+      var j = await r.json();
+      sha = j.content && j.content.sha;
+      dirty = false;
+      try { localStorage.removeItem('watched.draft'); } catch (e) {}
+      say(conflictNote ? 'Saved (overwrote)' : 'Saved', 'ok');
+      if (conflictNote) { render(); }
+    } catch (e) {
+      var m = String(e.message || e);
+      say(m === 'auth' ? 'Token rejected' : m === 'conflict' ? 'Conflict — reload' : 'Save failed', 'err');
+    } finally {
+      saving = false;
+    }
+  }
+
+  async function refreshSha() {
+    var c = cfg();
+    var r = await fetch('https://api.github.com/repos/' + c.owner + '/' + c.repo
+      + '/contents/' + PATH + '?ref=' + encodeURIComponent(c.branch), {
+      headers: { 'Authorization': 'Bearer ' + c.token, 'Accept': 'application/vnd.github+json' },
+      cache: 'no-store'
+    });
+    if (r.ok) { var j = await r.json(); sha = j.sha; }
+  }
+
+  /* ---------- programme view ---------- */
+  function matches(f) {
+    if (filter !== 'all' && f.status !== filter) return false;
+    if (term && f.search.indexOf(term) === -1) return false;
+    return true;
+  }
+  function countIn(month) {
+    var n = FILMS.filter(function (f) { return f.month === month && matches(f); }).length;
+    return n + (n === 1 ? ' film' : ' films');
+  }
+  function filmRow(f) {
+    var e = entryFor(f.id), t = esc(f.title);
+    var titleHTML = f.url ? '<a href="' + esc(f.url) + '" target="_blank" rel="noopener">' + t + '</a>' : t;
+    var day = f.day ? '<span class="rail-day">' + esc(f.day) + '</span>'
+                    : '<span class="rail-day rail-fest">fest</span>';
+    var rail = f.month ? '<span class="rail-month">' + esc(f.month.slice(0,3)) + '</span>' + day
+                       : '<span class="rail-month">&mdash;</span>';
+    var btn = '<button type="button" class="seen" data-id="' + esc(f.id) + '" aria-pressed="'
+      + (e ? 'true' : 'false') + '">' + (e ? '&#10003; Watched' : 'Mark watched') + '</button>';
+    var mark = e ? '<span class="watched-on">No.' + e.rank + (e.grade ? ' &middot; ' + esc(e.grade) : '') + '</span>' : '';
+    var meta = (f.cast ? '<span><span class="k">Cast</span>' + esc(f.cast) + '</span>' : '')
+      + (f.note ? '<span><span class="k">Card</span>&ldquo;' + esc(f.note) + '&rdquo; <span class="from">&middot; ' + esc(f.list) + '</span></span>'
+                : '<span><span class="k">Card</span><span class="from">' + esc(f.list) + '</span></span>');
+    return '<li class="film' + (e ? ' is-seen' : '') + '" data-status="' + esc(f.status) + '">'
+      + '<div class="strip" aria-hidden="true"></div><div class="rail">' + rail + '</div>'
+      + '<div class="entry"><div class="entry-head"><h3 class="title">' + titleHTML + '</h3>'
+      + '<span class="pill pill-' + esc(f.status) + '">' + esc(f.statusLabel) + '</span>' + btn + mark + '</div>'
+      + (f.crew ? '<p class="crew">' + esc(f.crew) + '</p>' : '')
+      + '<p class="desc">' + esc(f.desc) + '</p>'
+      + (e && e.reason ? '<p class="yourtake"><span class="k">Your take</span>' + esc(e.reason) + '</p>' : '')
+      + '<div class="meta">' + meta + '</div></div></li>';
+  }
+  function programmeHTML() {
+    var shown = FILMS.filter(matches);
+    if (!shown.length) return '<p class="empty">No films match that search.</p>';
+    var html = '', month = null, buf = [];
+    shown.forEach(function (f) {
+      if (f.month !== month) {
+        if (month !== null) html += '<ol class="films">' + buf.join('') + '</ol>';
+        buf = []; month = f.month;
+        html += '<h2 class="month-head"><span>' + esc(month ? month + ' 2026' : 'Undated')
+          + '</span><span class="rule"></span><span class="month-count">' + countIn(month) + '</span></h2>';
+      }
+      buf.push(filmRow(f));
+    });
+    return html + '<ol class="films">' + buf.join('') + '</ol>';
+  }
+
+  /* ---------- watched view ---------- */
+  function gradeSelect(e) {
+    var out = '<select class="gsel" data-key="' + esc(keyOf(e)) + '" aria-label="Grade for ' + esc(e.title)
+      + '"><option value=""' + (e.grade ? '' : ' selected') + '>&ndash;</option>';
+    GRADES.forEach(function (g) {
+      out += '<option value="' + g + '"' + (e.grade === g ? ' selected' : '') + '>' + g + '</option>';
+    });
+    return out + '</select>';
+  }
+  function watchedHTML() {
+    var rows = ordered(), lit = '';
+    for (var i = 0; i < FILMS.length; i++) lit += '<span class="frame' + (i < boardSeen() ? ' lit' : '') + '"></span>';
+    var off = rows.length - boardSeen();
+    var html = '<div class="progress-wrap"><div class="progress-strip" aria-hidden="true">' + lit
+      + '</div><p class="progress-label"><b>' + boardSeen() + '</b> of ' + FILMS.length + ' on the board watched'
+      + (off ? ' &middot; <b>' + off + '</b> off-board' : '') + '</p></div>';
+
+    if (!rows.length) {
+      html += '<p class="empty"><strong>Nothing logged yet.</strong><br>Mark anything watched on the Programme, or add a film below.</p>';
+    } else {
+      html += '<ol class="wlist">';
+      rows.forEach(function (e, i) {
+        var t = esc(e.title), k = esc(keyOf(e));
+        var sub = [e.director, e.release].filter(Boolean).map(esc).join(' &middot; ');
+        html += '<li class="wrow"' + (e.grade ? ' data-grade="' + esc(e.grade) + '"' : '') + '>'
+          + '<div class="wrank">' + e.rank + '</div><div class="wbody">'
+          + '<div class="wtop"><h3 class="wtitle">'
+          + (e.url ? '<a href="' + esc(e.url) + '" target="_blank" rel="noopener">' + t + '</a>' : t) + '</h3>'
+          + (e.grade ? '<span class="gbadge">' + esc(e.grade) + '</span>' : '')
+          + (e.filmId ? '' : '<span class="off">Off board</span>') + '</div>'
+          + (sub ? '<p class="wmeta">' + sub + '</p>' : '')
+          + '<div class="wctl">' + gradeSelect(e)
+          + '<input type="text" class="rin" data-key="' + k + '" value="' + esc(e.reason || '')
+          + '" placeholder="Why? one line&hellip;" aria-label="Reason for ' + t + '">'
+          + '<span class="movers">'
+          + '<button type="button" class="mv" data-key="' + k + '" data-dir="-1"' + (i === 0 ? ' disabled' : '') + ' aria-label="Move up">&#9650;</button>'
+          + '<button type="button" class="mv" data-key="' + k + '" data-dir="1"' + (i === rows.length - 1 ? ' disabled' : '') + ' aria-label="Move down">&#9660;</button>'
+          + '<button type="button" class="rm" data-key="' + k + '">Remove</button>'
+          + '</span></div></div></li>';
+      });
+      html += '</ol>';
+    }
+
+    html += '<div class="addbox"><h3>Add a film that was never on the board</h3>'
+      + '<p>It joins the bottom of the ranking; move it up with the arrows.</p>'
+      + '<div class="addrow"><input type="text" class="tin" id="addtitle" placeholder="Film title" aria-label="Film title">'
+      + '<button type="button" id="addbtn">Add</button></div></div>';
+
+    html += '<div class="addbox"><h3>' + (showJSON ? '&#9660;' : '&#9654;') + ' <button type="button" id="jtoggle" class="ghbtn">'
+      + (showJSON ? 'Hide' : 'Show') + ' JSON</button></h3>'
+      + '<p>Exactly what lives in <code>data/watched.json</code>.</p>'
+      + (showJSON ? '<textarea class="rin" id="jout" readonly rows="12" spellcheck="false" style="flex:1 1 100%;font-family:monospace;font-size:.72rem">'
+          + esc(JSON.stringify(data, null, 2)) + '</textarea>' : '') + '</div>';
+    return html;
+  }
+
+  /* ---------- sync view ---------- */
+  function syncHTML() {
+    var c = cfg();
+    var where = c.owner && c.repo
+      ? c.owner + '/' + c.repo + ' @ ' + c.branch + (c.guessed ? ' (from this URL)' : ' (set by you)')
+      : 'not detected — set it below';
+    var html = '<div class="sync"><h3>' + (connected() ? 'Connected' : 'Connect to save') + '</h3>';
+    if (connected()) {
+      html += '<p>Changes commit straight to <code>' + esc(PATH) + '</code>. Every edit is a commit, '
+        + 'so the file history is your undo.</p>'
+        + '<div class="syncrow"><button type="button" class="ghbtn" id="reload">Reload from GitHub</button>'
+        + '<button type="button" class="ghbtn" id="forget">Forget token on this device</button></div>';
+    } else {
+      html += '<p>Reading needs nothing. Saving needs a token with write access to this one repo.</p>'
+        + '<ol>'
+        + '<li>Open <a href="https://github.com/settings/personal-access-tokens/new" target="_blank" rel="noopener">'
+        + 'fine-grained tokens</a> on GitHub.</li>'
+        + '<li>Repository access: <em>Only select repositories</em> &rarr; this repo.</li>'
+        + '<li>Permissions: <code>Contents</code> &rarr; <strong>Read and write</strong>. Nothing else.</li>'
+        + '<li>Paste it below. It is stored in this browser only.</li>'
+        + '</ol>'
+        + '<div class="syncrow"><input type="password" class="tin" id="tok" placeholder="github_pat_…" '
+        + 'autocomplete="off" aria-label="GitHub token"><button type="button" class="ghbtn" id="savetok">Connect</button></div>';
+    }
+    html += '<div class="syncrow" style="margin-top:.9rem">'
+      + '<input type="text" class="tin" id="ownerin" placeholder="owner" value="' + esc(c.owner) + '" aria-label="Repository owner" style="max-width:11rem">'
+      + '<input type="text" class="tin" id="repoin" placeholder="repo" value="' + esc(c.repo) + '" aria-label="Repository name" style="max-width:13rem">'
+      + '<button type="button" class="ghbtn" id="saverepo">Set repo</button></div>'
+      + '<p class="repoline">Target: ' + esc(where) + '</p></div>';
+    return html;
+  }
+
+  /* ---------- shell ---------- */
+  function render() {
+    var n = data.films.length;
+    var out = FILMS.filter(function (f) { return f.status === 'out'; }).length;
+    var html = '<header>'
+      + '<p class="eyebrow">Trello board &ldquo;Things&rdquo; &middot; two lists, combined</p>'
+      + '<h1>2026 Programme</h1>'
+      + '<p class="lede">Every film from your <em>2026 movies</em> and <em>Not out yet</em> lists, '
+      + 'merged and put in release order &mdash; and a ranked log of what you have watched.</p>'
+      + '<div class="bulbs" aria-hidden="true"></div>'
+      + '<div class="stats"><span><b>' + FILMS.length + '</b> films</span>'
+      + '<span><b>' + out + '</b> released</span><span><b>' + (FILMS.length - out) + '</b> still to come</span>'
+      + '<span><b>' + n + '</b> watched</span></div>'
+      + '<nav class="nav" role="tablist">'
+      + '<button type="button" role="tab" data-view="programme" aria-selected="' + (view === 'programme') + '">Programme</button>'
+      + '<button type="button" role="tab" data-view="watched" aria-selected="' + (view === 'watched') + '">Ranked &amp; graded</button>'
+      + '<span class="spacer"></span>'
+      + '<button type="button" role="tab" id="synctab" class="' + (connected() ? 'on' : '') + '" data-view="sync" aria-selected="'
+      + (view === 'sync') + '">' + (connected() ? '&#9679; Synced' : '&#9675; Connect') + '</button>'
+      + '</nav></header>';
+
+    if (conflictNote) {
+      html += '<div class="banner">' + esc(conflictNote)
+        + '<button type="button" id="dismiss">Dismiss</button></div>';
+    }
+    if (dirty && !connected()) {
+      html += '<div class="banner">Unsaved changes are held in this browser. '
+        + 'Connect to commit them.<button type="button" data-view="sync">Connect</button></div>';
+    }
+
+    if (view === 'programme') {
+      html += '<div class="controls"><div class="filters" role="group" aria-label="Filter by release status">'
+        + '<button type="button" data-filter="all" aria-pressed="' + (filter === 'all') + '">All</button>'
+        + '<button type="button" data-filter="out" aria-pressed="' + (filter === 'out') + '">Released</button>'
+        + '<button type="button" data-filter="upcoming" aria-pressed="' + (filter === 'upcoming') + '">Coming soon</button>'
+        + '</div><input id="q" type="search" placeholder="Search title, director, cast&hellip;" aria-label="Search films" value="' + esc(term) + '"></div>';
+    }
+
+    html += '<main>' + (view === 'programme' ? programmeHTML() : view === 'watched' ? watchedHTML() : syncHTML()) + '</main>';
+    html += '<footer>Synopses, release dates and credits from Wikipedia; <em>The End</em> from the Cannes '
+      + 'programme. Your ranking and grades live in <code>data/watched.json</code> in this repo.</footer>';
+    root.innerHTML = html;
+  }
+
+  /* ---------- events ---------- */
+  function find(k) { return data.films.filter(function (e) { return keyOf(e) === k; })[0] || null; }
+
+  root.addEventListener('click', function (ev) {
+    var el = ev.target.closest && ev.target.closest('button');
+    if (!el) return;
+
+    if (el.dataset.view) { view = el.dataset.view; render(); return; }
+    if (el.dataset.filter) { filter = el.dataset.filter; render(); return; }
+    if (el.id === 'dismiss') { conflictNote = ''; render(); return; }
+
+    if (el.classList.contains('seen')) {
+      var id = el.dataset.id, f = byId[id];
+      if (entryFor(id)) {
+        data.films = data.films.filter(function (e) { return e.filmId !== id; });
+      } else {
+        data.films.push({ rank: data.films.length + 1, title: f.title, filmId: id, grade: '', reason: '' });
+      }
+      renumber(); render(); queueSave(); return;
+    }
+    if (el.classList.contains('mv')) {
+      var rows = ordered(), me = find(el.dataset.key);
+      var i = rows.indexOf(me), j = i + Number(el.dataset.dir);
+      if (j < 0 || j >= rows.length) return;
+      var tmp = rows[i].rank; rows[i].rank = rows[j].rank; rows[j].rank = tmp;
+      renumber(); render(); queueSave(); return;
+    }
+    if (el.classList.contains('rm')) {
+      var k = el.dataset.key;
+      data.films = data.films.filter(function (e) { return keyOf(e) !== k; });
+      renumber(); render(); queueSave(); return;
+    }
+    if (el.id === 'addbtn') {
+      var ti = document.getElementById('addtitle'), title = ti.value.trim();
+      if (!title) { ti.focus(); return; }
+      data.films.push({ rank: data.films.length + 1, title: title, filmId: null,
+                        grade: '', reason: '', director: '', release: '', url: null });
+      renumber(); render(); queueSave(); return;
+    }
+    if (el.id === 'jtoggle') { showJSON = !showJSON; render(); return; }
+
+    if (el.id === 'savetok') {
+      var v = document.getElementById('tok').value.trim();
+      if (!v) return;
+      localStorage.setItem('gh.token', v);
+      sha = null; render();
+      if (dirty) queueSave(); else say('Connected', 'ok');
+      return;
+    }
+    if (el.id === 'forget') { localStorage.removeItem('gh.token'); render(); say('Token removed', 'ok'); return; }
+    if (el.id === 'saverepo') {
+      localStorage.setItem('gh.owner', document.getElementById('ownerin').value.trim());
+      localStorage.setItem('gh.repo', document.getElementById('repoin').value.trim());
+      sha = null; render(); say('Repo set', 'ok'); return;
+    }
+    if (el.id === 'reload') {
+      loadWatched().then(function () { dirty = false; render(); say('Reloaded', 'ok'); })
+                   .catch(function () { say('Reload failed', 'err'); });
+      return;
+    }
+  });
+
+  root.addEventListener('change', function (ev) {
+    if (ev.target.classList && ev.target.classList.contains('gsel')) {
+      var e = find(ev.target.dataset.key);
+      if (e) { e.grade = ev.target.value; render(); queueSave(); }
+    }
+  });
+
+  root.addEventListener('input', function (ev) {
+    if (ev.target.id === 'q') {
+      term = ev.target.value.trim().toLowerCase();
+      var main = root.querySelector('main');
+      if (main) main.innerHTML = programmeHTML();
+      return;
+    }
+    if (ev.target.classList && ev.target.classList.contains('rin') && ev.target.dataset.key) {
+      var e = find(ev.target.dataset.key);
+      if (e) { e.reason = ev.target.value; queueSave(); }   // no re-render: keep focus
+    }
+  });
+
+  window.addEventListener('beforeunload', function (ev) {
+    if (dirty) { ev.preventDefault(); ev.returnValue = ''; }
+  });
+
+  /* ---------- boot ---------- */
+  (async function () {
+    try {
+      await loadFilms();
+      await loadWatched();
+      try {
+        var draft = localStorage.getItem('watched.draft');
+        if (draft && !connected()) { data = JSON.parse(draft); dirty = true; }
+      } catch (e) {}
+      render();
+    } catch (e) {
+      root.innerHTML = '<header><h1>2026 Programme</h1>'
+        + '<p class="lede">Could not load the data files. This page expects '
+        + '<code>data/films.json</code> and <code>data/watched.json</code> alongside it.</p>'
+        + '<p class="lede">' + esc(String(e.message || e)) + '</p></header>';
+    }
+  })();
+})();
+</script>
+</body>
+</html>

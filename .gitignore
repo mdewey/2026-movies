@@ -1,0 +1,10 @@
+# Personal Trello export: 1,710 cards from the whole board, not just movies.
+# Kept locally so the data can be rebuilt; never committed to a public repo.
+.research/trello-export.json
+
+# Bulky scratch that is cheap to re-download.
+.research/cache/
+.research/us2026.txt
+
+# Pasted screenshots.
+image.png

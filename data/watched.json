@@ -1,0 +1,74 @@
+{
+  "_readme": [
+    "Your watched films, in your own order of liking (rank 1 = liked most).",
+    "Edit anything here, then run: python .research/generate_page.py   and republish.",
+    "You can also edit rank, grade and reason directly on the published page — it saves itself.",
+    "grade: A B C D E F, optionally with + or - (A-, B+). Leave \"\" if undecided.",
+    "reason: one short line on why. Shown under the title.",
+    "filmId: links to a film on the 2026 Trello board. null means it was never on the board,",
+    "        in which case director / release / url on the entry supply its details."
+  ],
+  "films": [
+    {
+      "rank": 1,
+      "title": "Mother Mary",
+      "filmId": "mother-mary",
+      "grade": "A-",
+      "reason": ""
+    },
+    {
+      "rank": 2,
+      "title": "Spider-Man: Brand New Day",
+      "filmId": null,
+      "grade": "B+",
+      "reason": "",
+      "director": "Destin Daniel Cretton",
+      "release": "31 July 2026",
+      "url": "https://en.wikipedia.org/wiki/Spider-Man:_Brand_New_Day"
+    },
+    {
+      "rank": 3,
+      "title": "The Sheep Detectives",
+      "filmId": null,
+      "grade": "B",
+      "reason": "",
+      "director": "Kyle Balda",
+      "release": "8 May 2026",
+      "url": "https://en.wikipedia.org/wiki/The_Sheep_Detectives"
+    },
+    {
+      "rank": 4,
+      "title": "Masters of the Universe",
+      "filmId": null,
+      "grade": "B",
+      "reason": "",
+      "director": "Travis Knight",
+      "release": "5 June 2026",
+      "url": "https://en.wikipedia.org/wiki/Masters_of_the_Universe_(2026_film)"
+    },
+    {
+      "rank": 5,
+      "title": "The Odyssey",
+      "filmId": null,
+      "grade": "B",
+      "reason": "",
+      "director": "Christopher Nolan",
+      "release": "17 July 2026",
+      "url": "https://en.wikipedia.org/wiki/The_Odyssey_(2026_film)"
+    },
+    {
+      "rank": 6,
+      "title": "Ready or Not 2: Here I Come",
+      "filmId": "ready-or-not-2-here-i-come",
+      "grade": "B-",
+      "reason": ""
+    },
+    {
+      "rank": 7,
+      "title": "Obsession",
+      "filmId": "obsession",
+      "grade": "F",
+      "reason": ""
+    }
+  ]
+}
