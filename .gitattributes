@@ -1,0 +1,4 @@
+# The site commits JSON through the GitHub API, which always writes LF, while
+# this repo is edited on Windows. Without this, a local commit would introduce
+# CRLF and every subsequent save from the page would diff the whole file.
+* text=auto eol=lf

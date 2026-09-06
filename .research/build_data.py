@@ -58,6 +58,26 @@ for m in movies:
         'search': ' '.join([m['title'], m['desc'], crew, cast, note]).lower(),
     })
 
+# Films added through the site live only in data/films.json, so carry them
+# across a rebuild instead of dropping them.
+try:
+    existing = json.load(open('data/films.json', encoding='utf-8'))
+except (OSError, ValueError):
+    existing = []
+kept = [f for f in existing if f.get('addedHere')]
+if kept:
+    have = {f['id'] for f in films}
+    for f in kept:
+        if f['id'] not in have:
+            films.append(f)
+    print('carried over %d hand-added film(s): %s'
+          % (len(kept), ', '.join(f['title'] for f in kept)))
+
+MONTHS = ['January','February','March','April','May','June','July','August',
+          'September','October','November','December']
+films.sort(key=lambda f: (MONTHS.index(f['month']) if f['month'] else 99,
+                          int(f['day']) if f['day'] else 99))
+
 ids = [f['id'] for f in films]
 dupes = sorted({i for i in ids if ids.count(i) > 1})
 if dupes:
@@ -71,8 +91,11 @@ for w in watched['films']:
         raise SystemExit('watched.json references unknown filmId %r (%s)'
                          % (w['filmId'], w['title']))
 
-json.dump(films, open('data/films.json', 'w', encoding='utf-8'),
-          ensure_ascii=False, indent=1)
+# Byte-for-byte the same shape the site writes (JSON.stringify(FILMS, null, 1)
+# plus a trailing newline), so a CI rebuild and a save from the page do not
+# produce spurious whitespace diffs against each other.
+with open('data/films.json', 'w', encoding='utf-8', newline='\n') as fh:
+    fh.write(json.dumps(films, ensure_ascii=False, indent=1) + '\n')
 print('wrote data/films.json —', len(films), 'films')
 print('watched.json cross-check: %d entries, %d linked to the board'
       % (len(watched['films']), sum(1 for w in watched['films'] if w.get('filmId'))))

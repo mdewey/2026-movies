@@ -1,0 +1,54 @@
+name: Build films.json
+
+# data/films.json is generated from .research/movies.json, so that stays the
+# source of truth even though the site can also append to films.json. The
+# build script merges anything added through the page (entries flagged
+# "addedHere") back in, so neither side clobbers the other.
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      # Deliberately NOT data/** — the site commits there constantly, and
+      # rebuilding on its own output would be a loop.
+      - '.research/movies.json'
+      - '.research/build_data.py'
+      - '.github/workflows/build-films.yml'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: build-films
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      # Fails loudly on a bad filmId in watched.json or a duplicate film id.
+      - name: Rebuild films.json
+        run: python .research/build_data.py
+
+      - name: Commit if it changed
+        run: |
+          if git diff --quiet -- data/films.json; then
+            echo "films.json already up to date."
+            exit 0
+          fi
+          echo "Changes to commit:"
+          git diff --stat -- data/films.json
+          git config user.name  "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/films.json
+          git commit -m "Rebuild films.json [skip ci]"
+          # Rebase onto anything the site committed while this job ran.
+          git pull --rebase --autostash origin main
+          git push

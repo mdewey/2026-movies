@@ -77,6 +77,24 @@
   #synctab { color:var(--dim); }
   #synctab.on { color:var(--ok); }
 
+  /* ---- pages deploy status ---- */
+  .deploy {
+    align-self:center; display:inline-flex; align-items:center; gap:.35rem;
+    font-family:"IBM Plex Mono",ui-monospace,monospace; font-size:.66rem;
+    letter-spacing:.12em; text-transform:uppercase; color:var(--dim);
+    text-decoration:none; white-space:nowrap;
+  }
+  .deploy .dot {
+    width:7px; height:7px; border-radius:50%; background:currentColor; flex:none;
+  }
+  .deploy.live { color:var(--ok); }
+  .deploy.building, .deploy.pending { color:var(--brass); }
+  .deploy.building .dot { animation:pulse 1.1s ease-in-out infinite; }
+  .deploy.failed { color:var(--soon); }
+  @keyframes pulse { 0%,100% { opacity:1; } 50% { opacity:.25; } }
+  @media (prefers-reduced-motion:reduce) { .deploy .dot { animation:none !important; } }
+  @media (max-width:600px) { .deploy .label { display:none; } }
+
   /* ---- controls ---- */
   .controls {
     position:sticky; top:0; z-index:5;
@@ -338,12 +356,13 @@
   "use strict";
 
   var GRADES = ['A+','A','A-','B+','B','B-','C+','C','C-','D+','D','D-','E+','E','E-','F'];
-  var PATH = 'data/watched.json';
 
   var FILMS = [], data = { _readme: [], films: [] };
-  var sha = null, byId = {};
+  var byId = {};
   var view = 'programme', filter = 'all', term = '', showJSON = false;
-  var dirty = false, saveTimer = null, saving = false, conflictNote = '';
+  var dirty = false, saving = false, conflictNote = '';
+  var deploy = { state: 'unknown', run: null };
+  var lastCommit = null, pollTimer = null, pollUntil = 0;
 
   var root = document.getElementById('root');
   var chip = document.getElementById('chip');
@@ -401,11 +420,64 @@
   function keyOf(e) { return e.filmId || ('off:' + e.title); }
 
   /* ---------- load ---------- */
+  var MONTHS = ['January','February','March','April','May','June','July','August',
+                'September','October','November','December'];
+
+  // films.json is kept in release order; a hand-added film slots into place.
+  function sortFilms() {
+    FILMS.sort(function (a, b) {
+      var am = a.month ? MONTHS.indexOf(a.month) : 99, bm = b.month ? MONTHS.indexOf(b.month) : 99;
+      if (am !== bm) return am - bm;
+      return (a.day ? +a.day : 99) - (b.day ? +b.day : 99);
+    });
+  }
+
+  function slug(s) {
+    var out = s.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+    return out || 'film';
+  }
+  function uniqueId(base) {
+    var id = base, n = 2;
+    while (byId[id]) { id = base + '-' + n; n++; }
+    return id;
+  }
+
+  function makeFilm(v) {
+    var month = null, day = null, release = '', status = 'upcoming';
+    if (v.date) {
+      var p = v.date.split('-');                 // yyyy-mm-dd from <input type=date>
+      month = MONTHS[Number(p[1]) - 1];
+      day = String(Number(p[2]));
+      release = month + ' ' + day + ', ' + p[0];
+      // Compare as plain dates so a released film is not marked upcoming.
+      var today = new Date(); today.setHours(0, 0, 0, 0);
+      status = new Date(p[0], Number(p[1]) - 1, Number(p[2])) <= today ? 'out' : 'upcoming';
+    }
+    var f = {
+      id: uniqueId(slug(v.title)),
+      title: v.title,
+      month: month, day: day, release: release,
+      status: status,
+      statusLabel: status === 'out' ? 'Released' : 'Coming soon',
+      director: v.director || '',
+      crew: v.director ? v.director + ' (director)' : '',
+      cast: '',
+      desc: v.desc || '',
+      url: v.url || null,
+      list: 'Added here',
+      note: '',
+      addedHere: true
+    };
+    f.search = [f.title, f.desc, f.crew].join(' ').toLowerCase();
+    return f;
+  }
+
   async function loadFilms() {
     var r = await fetch('data/films.json', { cache: 'no-cache' });
     if (!r.ok) throw new Error('films.json ' + r.status);
     FILMS = await r.json();
     FILMS.forEach(function (f) { byId[f.id] = f; });
+    sortFilms();
   }
 
   // Prefer the GitHub API: it reflects a commit immediately, while the Pages
@@ -417,46 +489,63 @@
         var h = { 'Accept': 'application/vnd.github+json' };
         if (c.token) h.Authorization = 'Bearer ' + c.token;
         var url = 'https://api.github.com/repos/' + c.owner + '/' + c.repo
-                + '/contents/' + PATH + '?ref=' + encodeURIComponent(c.branch);
+                + '/contents/' + FILES.watched.path + '?ref=' + encodeURIComponent(c.branch);
         var r = await fetch(url, { headers: h, cache: 'no-store' });
         if (r.ok) {
           var j = await r.json();
-          sha = j.sha;
+          FILES.watched.sha = j.sha;
           data = JSON.parse(b64decode(j.content));
           return 'api';
         }
       } catch (e) { /* fall through to the static copy */ }
     }
-    var s = await fetch(PATH + '?t=' + Date.now(), { cache: 'no-store' });
+    var s = await fetch(FILES.watched.path + '?t=' + Date.now(), { cache: 'no-store' });
     if (!s.ok) throw new Error('watched.json ' + s.status);
     data = await s.json();
-    sha = null;
+    FILES.watched.sha = null;
     return 'static';
   }
 
-  /* ---------- save ---------- */
-  function queueSave() {
+  /* ---------- save ----------
+     Both JSON files commit the same way; FILES holds each one's path, its
+     current blob sha, and how to serialise it. */
+  var FILES = {
+    watched: {
+      path: 'data/watched.json', sha: null, timer: null,
+      message: 'Update watched list',
+      body: function () { return JSON.stringify(data, null, 2) + '\n'; }
+    },
+    films: {
+      path: 'data/films.json', sha: null, timer: null,
+      message: 'Update film list',
+      body: function () { return JSON.stringify(FILMS, null, 1) + '\n'; }
+    }
+  };
+
+  function queueSave(which) {
+    which = which || 'watched';
+    var F = FILES[which];
     dirty = true;
-    try { localStorage.setItem('watched.draft', JSON.stringify(data)); } catch (e) {}
+    if (which === 'watched') {
+      try { localStorage.setItem('watched.draft', JSON.stringify(data)); } catch (e) {}
+    }
     if (!connected()) { say('Not saved — connect to sync', 'err'); return; }
-    if (saveTimer) clearTimeout(saveTimer);
+    if (F.timer) clearTimeout(F.timer);
     say('Saving…');
-    saveTimer = setTimeout(commit, 1200);
+    F.timer = setTimeout(function () { commit(which); }, 1200);
   }
 
-  async function commit(isRetry) {
-    if (saving) return;
+  async function commit(which, isRetry) {
+    var F = FILES[which];
+    if (saving) { if (F.timer) clearTimeout(F.timer); F.timer = setTimeout(function () { commit(which); }, 800); return; }
     saving = true;
     var c = cfg();
     try {
-      if (sha === null) await refreshSha();
-      var body = {
-        message: 'Update watched list',
-        content: b64encode(JSON.stringify(data, null, 2) + '\n'),
-        branch: c.branch
-      };
-      if (sha) body.sha = sha;
-      var r = await fetch('https://api.github.com/repos/' + c.owner + '/' + c.repo + '/contents/' + PATH, {
+      if (F.sha === null) await refreshSha(which);
+      var body = { message: F.message, content: b64encode(F.body()), branch: c.branch };
+      if (F.sha) body.sha = F.sha;
+      var r = await fetch('https://api.github.com/repos/' + c.owner + '/' + c.repo
+        + '/contents/' + F.path, {
         method: 'PUT',
         headers: {
           'Authorization': 'Bearer ' + c.token,
@@ -469,20 +558,24 @@
         // Someone (or another device) committed first. Take their sha and
         // apply this device's copy on top — last writer wins.
         if (!isRetry) {
-          await refreshSha();
+          await refreshSha(which);
           saving = false;
-          conflictNote = 'The file had changed elsewhere; your version was written over it.';
-          return commit(true);
+          conflictNote = F.path + ' had changed elsewhere; your version was written over it.';
+          return commit(which, true);
         }
         throw new Error('conflict');
       }
       if (r.status === 401 || r.status === 403) throw new Error('auth');
       if (!r.ok) throw new Error('http ' + r.status);
       var j = await r.json();
-      sha = j.content && j.content.sha;
+      F.sha = j.content && j.content.sha;
+      lastCommit = j.commit && j.commit.sha;   // what Pages now has to build
       dirty = false;
-      try { localStorage.removeItem('watched.draft'); } catch (e) {}
+      if (which === 'watched') { try { localStorage.removeItem('watched.draft'); } catch (e) {} }
       say(conflictNote ? 'Saved (overwrote)' : 'Saved', 'ok');
+      deploy.state = 'pending';
+      paintDeploy();
+      watchDeploy();
       if (conflictNote) { render(); }
     } catch (e) {
       var m = String(e.message || e);
@@ -492,14 +585,101 @@
     }
   }
 
-  async function refreshSha() {
+  /* ---------- pages deploy status ----------
+     Branch-based Pages is built by an implicit workflow named
+     "pages-build-deployment". Its latest run tells us both whether a build is
+     running and which commit it built — so we can say "your change is live"
+     rather than just "a build succeeded". */
+  async function fetchDeploy() {
     var c = cfg();
+    if (!c.owner || !c.repo) { deploy.state = 'unconfigured'; return; }
+    try {
+      var h = { 'Accept': 'application/vnd.github+json' };
+      if (c.token) h.Authorization = 'Bearer ' + c.token;
+      var r = await fetch('https://api.github.com/repos/' + c.owner + '/' + c.repo
+        + '/actions/runs?per_page=10', { headers: h, cache: 'no-store' });
+      if (!r.ok) { deploy.state = 'unavailable'; return; }
+      var j = await r.json();
+      var runs = (j.workflow_runs || []).filter(function (w) {
+        return /pages/i.test(w.name || '') || /pages/i.test(w.path || '');
+      });
+      var run = runs[0] || null;
+      deploy.run = run;
+      if (!run) deploy.state = 'none';
+      else if (run.status !== 'completed') deploy.state = 'building';
+      else if (run.conclusion !== 'success') deploy.state = 'failed';
+      else deploy.state = (lastCommit && run.head_sha !== lastCommit) ? 'pending' : 'live';
+    } catch (e) {
+      deploy.state = 'unavailable';
+    }
+  }
+
+  function ago(iso) {
+    if (!iso) return '';
+    var s = Math.max(0, (Date.now() - new Date(iso).getTime()) / 1000);
+    if (s < 60) return 'just now';
+    if (s < 3600) return Math.round(s / 60) + 'm ago';
+    if (s < 86400) return Math.round(s / 3600) + 'h ago';
+    return Math.round(s / 86400) + 'd ago';
+  }
+
+  var DEPLOY_TEXT = {
+    live: 'Live', building: 'Deploying', pending: 'Queued', failed: 'Deploy failed',
+    none: 'No deploys yet', unavailable: 'Status unavailable', unconfigured: '',
+    unknown: 'Checking'
+  };
+
+  function paintDeploy() {
+    var el = document.getElementById('deploy');
+    if (!el) return;
+    if (deploy.state === 'unconfigured') { el.hidden = true; return; }
+    el.hidden = false;
+    el.className = 'deploy ' + deploy.state;
+    var when = deploy.run && deploy.state === 'live' ? ' ' + ago(deploy.run.updated_at) : '';
+    el.innerHTML = '<span class="dot"></span><span class="label">'
+      + esc(DEPLOY_TEXT[deploy.state] || '') + esc(when) + '</span>';
+    if (deploy.run && deploy.run.html_url) {
+      el.setAttribute('href', deploy.run.html_url);
+      el.setAttribute('target', '_blank');
+      el.setAttribute('rel', 'noopener');
+    } else {
+      el.removeAttribute('href');
+    }
+    el.title = deploy.state === 'pending'
+      ? 'Your latest commit has not been built yet'
+      : deploy.run ? 'Pages build ' + deploy.run.status
+          + (deploy.run.conclusion ? ' (' + deploy.run.conclusion + ')' : '')
+          + ' — ' + ago(deploy.run.updated_at)
+        : 'No Pages build found yet';
+  }
+
+  async function checkDeploy() {
+    await fetchDeploy();
+    paintDeploy();
+  }
+
+  // After a commit, watch until the build lands (or we give up quietly).
+  function watchDeploy() {
+    pollUntil = Date.now() + 5 * 60 * 1000;
+    if (pollTimer) return;
+    var tick = async function () {
+      await checkDeploy();
+      var done = deploy.state === 'live' || deploy.state === 'failed'
+        || deploy.state === 'unavailable' || deploy.state === 'unconfigured';
+      if (done || Date.now() > pollUntil) { clearInterval(pollTimer); pollTimer = null; }
+    };
+    pollTimer = setInterval(tick, 6000);
+    tick();
+  }
+
+  async function refreshSha(which) {
+    var F = FILES[which], c = cfg();
     var r = await fetch('https://api.github.com/repos/' + c.owner + '/' + c.repo
-      + '/contents/' + PATH + '?ref=' + encodeURIComponent(c.branch), {
+      + '/contents/' + F.path + '?ref=' + encodeURIComponent(c.branch), {
       headers: { 'Authorization': 'Bearer ' + c.token, 'Accept': 'application/vnd.github+json' },
       cache: 'no-store'
     });
-    if (r.ok) { var j = await r.json(); sha = j.sha; }
+    if (r.ok) { var j = await r.json(); F.sha = j.sha; }
   }
 
   /* ---------- programme view ---------- */
@@ -522,21 +702,42 @@
     var btn = '<button type="button" class="seen" data-id="' + esc(f.id) + '" aria-pressed="'
       + (e ? 'true' : 'false') + '">' + (e ? '&#10003; Watched' : 'Mark watched') + '</button>';
     var mark = e ? '<span class="watched-on">No.' + e.rank + (e.grade ? ' &middot; ' + esc(e.grade) : '') + '</span>' : '';
+    // Only films added through the page can be removed here; the researched 43
+    // are rebuilt from .research and would come straight back.
+    var unlist = f.addedHere
+      ? '<button type="button" class="rm unlist" data-id="' + esc(f.id) + '">Remove</button>' : '';
     var meta = (f.cast ? '<span><span class="k">Cast</span>' + esc(f.cast) + '</span>' : '')
       + (f.note ? '<span><span class="k">Card</span>&ldquo;' + esc(f.note) + '&rdquo; <span class="from">&middot; ' + esc(f.list) + '</span></span>'
                 : '<span><span class="k">Card</span><span class="from">' + esc(f.list) + '</span></span>');
     return '<li class="film' + (e ? ' is-seen' : '') + '" data-status="' + esc(f.status) + '">'
       + '<div class="strip" aria-hidden="true"></div><div class="rail">' + rail + '</div>'
       + '<div class="entry"><div class="entry-head"><h3 class="title">' + titleHTML + '</h3>'
-      + '<span class="pill pill-' + esc(f.status) + '">' + esc(f.statusLabel) + '</span>' + btn + mark + '</div>'
+      + '<span class="pill pill-' + esc(f.status) + '">' + esc(f.statusLabel) + '</span>'
+      + btn + mark + unlist + '</div>'
       + (f.crew ? '<p class="crew">' + esc(f.crew) + '</p>' : '')
       + '<p class="desc">' + esc(f.desc) + '</p>'
       + (e && e.reason ? '<p class="yourtake"><span class="k">Your take</span>' + esc(e.reason) + '</p>' : '')
       + '<div class="meta">' + meta + '</div></div></li>';
   }
+  function addFilmHTML() {
+    return '<div class="addbox" id="addfilm"><h3>Add a film to the programme</h3>'
+      + '<p>Goes into <code>data/films.json</code> and slots into release order. '
+      + 'Only the title is required.</p>'
+      + '<div class="addrow">'
+      + '<input type="text" class="tin" id="nf-title" placeholder="Title" aria-label="Title" style="flex:2 1 14rem">'
+      + '<input type="date" class="tin" id="nf-date" aria-label="Release date" style="flex:0 0 10rem">'
+      + '</div><div class="addrow" style="margin-top:.5rem">'
+      + '<input type="text" class="tin" id="nf-director" placeholder="Director" aria-label="Director" style="flex:1 1 11rem">'
+      + '<input type="url" class="tin" id="nf-url" placeholder="Link (optional)" aria-label="Link" style="flex:1 1 12rem">'
+      + '</div><div class="addrow" style="margin-top:.5rem">'
+      + '<input type="text" class="tin" id="nf-desc" placeholder="One-line synopsis" aria-label="Synopsis" style="flex:1 1 100%">'
+      + '</div><div class="addrow" style="margin-top:.5rem">'
+      + '<button type="button" id="nf-add">Add film</button></div></div>';
+  }
+
   function programmeHTML() {
     var shown = FILMS.filter(matches);
-    if (!shown.length) return '<p class="empty">No films match that search.</p>';
+    if (!shown.length) return '<p class="empty">No films match that search.</p>' + addFilmHTML();
     var html = '', month = null, buf = [];
     shown.forEach(function (f) {
       if (f.month !== month) {
@@ -547,7 +748,7 @@
       }
       buf.push(filmRow(f));
     });
-    return html + '<ol class="films">' + buf.join('') + '</ol>';
+    return html + '<ol class="films">' + buf.join('') + '</ol>' + addFilmHTML();
   }
 
   /* ---------- watched view ---------- */
@@ -614,8 +815,8 @@
       : 'not detected — set it below';
     var html = '<div class="sync"><h3>' + (connected() ? 'Connected' : 'Connect to save') + '</h3>';
     if (connected()) {
-      html += '<p>Changes commit straight to <code>' + esc(PATH) + '</code>. Every edit is a commit, '
-        + 'so the file history is your undo.</p>'
+      html += '<p>Grades and ranking commit to <code>data/watched.json</code>; adding a film commits '
+        + '<code>data/films.json</code>. Every edit is a commit, so the file history is your undo.</p>'
         + '<div class="syncrow"><button type="button" class="ghbtn" id="reload">Reload from GitHub</button>'
         + '<button type="button" class="ghbtn" id="forget">Forget token on this device</button></div>';
     } else {
@@ -655,6 +856,7 @@
       + '<button type="button" role="tab" data-view="programme" aria-selected="' + (view === 'programme') + '">Programme</button>'
       + '<button type="button" role="tab" data-view="watched" aria-selected="' + (view === 'watched') + '">Ranked &amp; graded</button>'
       + '<span class="spacer"></span>'
+      + '<a class="deploy" id="deploy" hidden></a>'
       + '<button type="button" role="tab" id="synctab" class="' + (connected() ? 'on' : '') + '" data-view="sync" aria-selected="'
       + (view === 'sync') + '">' + (connected() ? '&#9679; Synced' : '&#9675; Connect') + '</button>'
       + '</nav></header>';
@@ -680,6 +882,7 @@
     html += '<footer>Synopses, release dates and credits from Wikipedia; <em>The End</em> from the Cannes '
       + 'programme. Your ranking and grades live in <code>data/watched.json</code> in this repo.</footer>';
     root.innerHTML = html;
+    paintDeploy();
   }
 
   /* ---------- events ---------- */
@@ -723,11 +926,41 @@
     }
     if (el.id === 'jtoggle') { showJSON = !showJSON; render(); return; }
 
+    if (el.id === 'nf-add') {
+      var g = function (id) { var n = document.getElementById(id); return n ? n.value.trim() : ''; };
+      var title = g('nf-title');
+      if (!title) { document.getElementById('nf-title').focus(); return; }
+      var dup = FILMS.filter(function (f) { return f.title.toLowerCase() === title.toLowerCase(); })[0];
+      if (dup && !confirm('"' + title + '" is already on the list. Add it again?')) return;
+      var f = makeFilm({ title: title, date: g('nf-date'), director: g('nf-director'),
+                         url: g('nf-url'), desc: g('nf-desc') });
+      FILMS.push(f); byId[f.id] = f; sortFilms();
+      term = ''; filter = 'all';
+      render(); queueSave('films');
+      say('Added ' + f.title, 'ok');
+      return;
+    }
+
+    if (el.classList.contains('unlist')) {
+      var rid = el.dataset.id;
+      var gone = byId[rid];
+      if (!gone || !confirm('Remove "' + gone.title + '" from the programme?')) return;
+      FILMS = FILMS.filter(function (x) { return x.id !== rid; });
+      delete byId[rid];
+      // Drop any watch-log entry that pointed at it, so the files stay consistent.
+      if (data.films.some(function (e) { return e.filmId === rid; })) {
+        data.films = data.films.filter(function (e) { return e.filmId !== rid; });
+        renumber(); queueSave('watched');
+      }
+      render(); queueSave('films');
+      return;
+    }
+
     if (el.id === 'savetok') {
       var v = document.getElementById('tok').value.trim();
       if (!v) return;
       localStorage.setItem('gh.token', v);
-      sha = null; render();
+      FILES.watched.sha = FILES.films.sha = null; render();
       if (dirty) queueSave(); else say('Connected', 'ok');
       return;
     }
@@ -735,7 +968,7 @@
     if (el.id === 'saverepo') {
       localStorage.setItem('gh.owner', document.getElementById('ownerin').value.trim());
       localStorage.setItem('gh.repo', document.getElementById('repoin').value.trim());
-      sha = null; render(); say('Repo set', 'ok'); return;
+      FILES.watched.sha = FILES.films.sha = null; render(); say('Repo set', 'ok'); return;
     }
     if (el.id === 'reload') {
       loadWatched().then(function () { dirty = false; render(); say('Reloaded', 'ok'); })
@@ -778,6 +1011,7 @@
         if (draft && !connected()) { data = JSON.parse(draft); dirty = true; }
       } catch (e) {}
       render();
+      checkDeploy();
     } catch (e) {
       root.innerHTML = '<header><h1>2026 Programme</h1>'
         + '<p class="lede">Could not load the data files. This page expects '
