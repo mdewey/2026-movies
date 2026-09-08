@@ -747,5 +747,23 @@
   "list": "Not out yet",
   "note": "",
   "search": "ray gunn brad bird's animated noir about the last human private detective in a future city shared by humans and aliens. brad bird (director/screenplay); matthew robbins (screenplay) sam rockwell, scarlett johansson, tom waits, john ratzenberger, jamie costa "
+ },
+ {
+  "id": "artificial",
+  "title": "Artificial",
+  "month": "December",
+  "day": "25",
+  "release": "December 25, 2026",
+  "status": "upcoming",
+  "statusLabel": "Coming soon",
+  "director": "Luca Guadagnino",
+  "crew": "Luca Guadagnino (director)",
+  "cast": "",
+  "desc": "Artificial is an upcoming biographical drama film directed and co-produced by Luca Guadagnino and written by Simon Rich. It stars Andrew Garfield as OpenAI CEO Sam Altman and centers on his controversial firing and rehiring in 2023.",
+  "url": null,
+  "list": "Added here",
+  "note": "",
+  "addedHere": true,
+  "search": "artificial artificial is an upcoming biographical drama film directed and co-produced by luca guadagnino and written by simon rich. it stars andrew garfield as openai ceo sam altman and centers on his controversial firing and rehiring in 2023. luca guadagnino (director)"
  }
 ]
