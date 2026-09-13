@@ -10,7 +10,7 @@
   ],
   "films": [
     {
-      "rank": 1,
+      "rank": 2,
       "title": "Mother Mary",
       "filmId": "mother-mary",
       "grade": "A-",
@@ -78,7 +78,7 @@
       "reason": "Nostalgia, made me belly laugh a few times, but I can't give this A "
     },
     {
-      "rank": 2,
+      "rank": 1,
       "title": "Project Hail Mary",
       "filmId": "project-hail-mary",
       "grade": "A",
