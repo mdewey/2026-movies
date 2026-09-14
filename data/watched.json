@@ -83,6 +83,13 @@
       "filmId": "project-hail-mary",
       "grade": "A",
       "reason": "Insta classic, technical really well done, scifi plus competency porn"
+    },
+    {
+      "rank": 10,
+      "title": "I Love Boosters",
+      "filmId": "i-love-boosters",
+      "grade": "",
+      "reason": ""
     }
   ]
 }
