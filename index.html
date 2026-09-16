@@ -500,10 +500,35 @@
     return f;
   }
 
+  // Prefer the GitHub API, for the same reason loadWatched does: the Pages CDN
+  // serves a stale copy for up to a minute after a save. That mattered little
+  // while films.json only changed when a film was added, but withPartner is
+  // toggled constantly — and reading the stale copy did worse than show a stale
+  // box, since the next toggle committed that whole stale array straight back,
+  // clearing flags that had already been saved.
   async function loadFilms() {
-    var r = await fetch('data/films.json', { cache: 'no-cache' });
-    if (!r.ok) throw new Error('films.json ' + r.status);
-    FILMS = await r.json();
+    var c = cfg(), text = null;
+    if (c.owner && c.repo) {
+      try {
+        var h = { 'Accept': 'application/vnd.github+json' };
+        if (c.token) h.Authorization = 'Bearer ' + c.token;
+        var url = 'https://api.github.com/repos/' + c.owner + '/' + c.repo
+                + '/contents/' + FILES.films.path + '?ref=' + encodeURIComponent(c.branch);
+        var r = await fetch(url, { headers: h, cache: 'no-store' });
+        if (r.ok) {
+          var j = await r.json();
+          FILES.films.sha = j.sha;      // also saves a round-trip on the first commit
+          text = b64decode(j.content);
+        }
+      } catch (e) { /* fall through to the static copy */ }
+    }
+    if (text === null) {
+      var s = await fetch('data/films.json?t=' + Date.now(), { cache: 'no-store' });
+      if (!s.ok) throw new Error('films.json ' + s.status);
+      text = await s.text();
+      FILES.films.sha = null;
+    }
+    FILMS = JSON.parse(text);
     FILMS.forEach(function (f) { byId[f.id] = f; });
     sortFilms();
   }
@@ -607,7 +632,10 @@
       if (conflictNote) { render(); }
     } catch (e) {
       var m = String(e.message || e);
-      say(m === 'auth' ? 'Token rejected' : m === 'conflict' ? 'Conflict — reload' : 'Save failed', 'err');
+      // Name the status: a save that fails silently on a phone is impossible to
+      // diagnose after the fact, and "http 409" vs "http 403" is the whole answer.
+      say(m === 'auth' ? 'Token rejected' : m === 'conflict' ? 'Conflict — reload'
+          : 'Save failed — ' + m, 'err');
     } finally {
       saving = false;
     }
@@ -882,7 +910,7 @@
       + '<div class="stats"><span><b>' + FILMS.length + '</b> films</span>'
       + '<span><b>' + out + '</b> released</span><span><b>' + (FILMS.length - out) + '</b> still to come</span>'
       + '<span><b>' + n + '</b> watched</span>'
-      + '<span><b>' + partnerCount() + '</b> with partner</span></div>'
+      + '<span><b class="pcount">' + partnerCount() + '</b> with partner</span></div>'
       + '<nav class="nav" role="tablist">'
       + '<button type="button" role="tab" data-view="programme" aria-selected="' + (view === 'programme') + '">Programme</button>'
       + '<button type="button" role="tab" data-view="watched" aria-selected="' + (view === 'watched') + '">Ranked &amp; graded</button>'
@@ -1019,11 +1047,16 @@
       var pid = ev.target.dataset.id, pf = byId[pid];
       if (!pf) return;
       pf.withPartner = ev.target.checked;
-      render(); queueSave('films');
-      // render() replaced the box that was just clicked; put focus back on the
-      // new one so keyboard toggling does not dump you at the top of the page.
-      var again = root.querySelector('.pchk[data-id="' + pid + '"]');
-      if (again) again.focus();
+      queueSave('films');
+      // Deliberately no render() here. Replacing the checkbox while its own
+      // click is still being dispatched makes the event fire again against the
+      // fresh element, so one tick saved true and then wrote false on top of
+      // it. The reason input below skips re-rendering for the same reason.
+      // :has() already paints the new state, so only the count needs a nudge,
+      // and a filtered list waits until the dispatch has finished.
+      var n = root.querySelector('.pcount');
+      if (n) n.textContent = partnerCount();
+      if (filter === 'partner') setTimeout(render, 0);
     }
   });
 
