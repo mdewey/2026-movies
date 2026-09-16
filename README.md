@@ -15,7 +15,7 @@ repo through the GitHub API.
 | Path | What it is |
 | --- | --- |
 | `index.html` | The whole app. Plain HTML/CSS/JS, no dependencies. |
-| `data/films.json` | The film list. Mostly generated; films you add on the site are merged in and kept. |
+| `data/films.json` | The film list. Mostly generated; films you add on the site, and the *With partner* flag, are merged in and kept. |
 | `data/watched.json` | Your ranking, grades and reasons. **Yours to edit.** |
 | `.research/` | Scratch: the scripts that built `films.json`. The Trello export lives here too but is gitignored — it holds the whole personal board, not just movies. |
 
@@ -47,8 +47,9 @@ repo through the GitHub API.
 Three ways, all writing the same file:
 
 - **On the site.** Grade dropdown, one-line reason, arrows to reorder, "Mark
-  watched" on any film. Each change commits `data/watched.json` about a second
-  later. The chip in the corner shows *Saving… / Saved*.
+  watched" and a "With partner" checkbox on any film. Each change commits about
+  a second later — `data/watched.json`, or `data/films.json` for the checkbox.
+  The chip in the corner shows *Saving… / Saved*.
 - **On github.com.** Edit `data/watched.json` directly — works fine on a phone.
 - **Locally.** Edit the file, commit, push.
 
@@ -73,6 +74,27 @@ data/watched.json`, or the History button on GitHub.
   also shows as watched in the Programme. `null` for a film that was never on
   the board, which then supplies its own `director`, `release` and `url`.
 
+### Watching together
+
+Every film in `films.json` carries a `withPartner` boolean — the ones your
+partner wants to watch with you:
+
+```json
+"withPartner": true
+```
+
+The **With partner** checkbox sets it, on the Programme and on any ranked entry
+linked to the board. A **With partner** filter sits beside *Released* / *Coming
+soon*, and the header counts them.
+
+Two things follow from the flag living on the film rather than in
+`watched.json`:
+
+- a ranked entry with `"filmId": null` has no film record to hold the flag, so
+  it gets no checkbox — off-board films are ones you have already seen anyway;
+- `films.json` is generated, so `build_data.py` carries the flag across a
+  rebuild by id. Ticking the box commits `films.json`, not `watched.json`.
+
 ## Regenerating `films.json`
 
 `.research/movies.json` is the source of truth; `data/films.json` is built from
@@ -84,8 +106,9 @@ it. The build runs in CI, so you never need Python locally:
 - Locally, if you want: `python .research/build_data.py`
 
 The script preserves films you added through the site (`"addedHere": true`) and
-fails loudly on a duplicate id or a `watched.json` entry whose `filmId` no
-longer exists — so a bad hand-edit breaks the build instead of the page.
+the `withPartner` flag on every film, and fails loudly on a duplicate id or a
+`watched.json` entry whose `filmId` no longer exists — so a bad hand-edit breaks
+the build instead of the page.
 
 ### Why it does not loop
 

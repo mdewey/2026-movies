@@ -190,6 +190,20 @@
   }
   .seen:hover { color:var(--ink); border-color:var(--brass-dim); }
   .seen[aria-pressed="true"] { color:var(--rel); background:var(--rel-bg); border-style:solid; border-color:var(--rel-line); }
+  /* Green, so "they want to see this" never reads as "already watched". */
+  .withp {
+    display:inline-flex; align-items:center; gap:.4rem;
+    font-family:"IBM Plex Mono",ui-monospace,monospace; font-size:.6rem;
+    letter-spacing:.14em; text-transform:uppercase; cursor:pointer;
+    color:var(--dim); background:transparent; border:1px dashed var(--line);
+    border-radius:2px; padding:.2rem .55rem; white-space:nowrap;
+  }
+  .withp:hover { color:var(--ink); border-color:var(--brass-dim); }
+  .withp input { accent-color:var(--ok); width:.85rem; height:.85rem; margin:0; cursor:pointer; }
+  .withp:has(input:checked) {
+    color:var(--ok); background:rgba(127,214,168,.12);
+    border-style:solid; border-color:rgba(127,214,168,.4);
+  }
   .watched-on {
     font-family:"IBM Plex Mono",ui-monospace,monospace; font-size:.63rem;
     letter-spacing:.1em; text-transform:uppercase; color:var(--brass);
@@ -419,6 +433,19 @@
   function boardSeen() { return data.films.filter(function (e) { return e.filmId; }).length; }
   function keyOf(e) { return e.filmId || ('off:' + e.title); }
 
+  /* ---------- watching together ----------
+     A boolean on the film itself, so it sits with the film's other facts and
+     commits to films.json; build_data.py carries it across a rebuild. A ranked
+     entry with no filmId has no film record to hold it, so it gets no box. */
+  function isPartner(f) { return !!(f && f.withPartner); }
+  function partnerCount() { return FILMS.filter(isPartner).length; }
+  function partnerBox(f) {
+    if (!f) return '';
+    return '<label class="withp"><input type="checkbox" class="pchk" data-id="' + esc(f.id) + '"'
+      + (f.withPartner ? ' checked' : '') + ' aria-label="Watch ' + esc(f.title)
+      + ' with partner"> With partner</label>';
+  }
+
   /* ---------- load ---------- */
   var MONTHS = ['January','February','March','April','May','June','July','August',
                 'September','October','November','December'];
@@ -466,6 +493,7 @@
       url: v.url || null,
       list: 'Added here',
       note: '',
+      withPartner: false,
       addedHere: true
     };
     f.search = [f.title, f.desc, f.crew].join(' ').toLowerCase();
@@ -684,7 +712,8 @@
 
   /* ---------- programme view ---------- */
   function matches(f) {
-    if (filter !== 'all' && f.status !== filter) return false;
+    if (filter === 'partner') { if (!isPartner(f)) return false; }
+    else if (filter !== 'all' && f.status !== filter) return false;
     if (term && f.search.indexOf(term) === -1) return false;
     return true;
   }
@@ -713,7 +742,7 @@
       + '<div class="strip" aria-hidden="true"></div><div class="rail">' + rail + '</div>'
       + '<div class="entry"><div class="entry-head"><h3 class="title">' + titleHTML + '</h3>'
       + '<span class="pill pill-' + esc(f.status) + '">' + esc(f.statusLabel) + '</span>'
-      + btn + mark + unlist + '</div>'
+      + btn + partnerBox(f) + mark + unlist + '</div>'
       + (f.crew ? '<p class="crew">' + esc(f.crew) + '</p>' : '')
       + '<p class="desc">' + esc(f.desc) + '</p>'
       + (e && e.reason ? '<p class="yourtake"><span class="k">Your take</span>' + esc(e.reason) + '</p>' : '')
@@ -785,6 +814,7 @@
           + '<div class="wctl">' + gradeSelect(e)
           + '<input type="text" class="rin" data-key="' + k + '" value="' + esc(e.reason || '')
           + '" placeholder="Why? one line&hellip;" aria-label="Reason for ' + t + '">'
+          + partnerBox(e.filmId ? byId[e.filmId] : null)
           + '<span class="movers">'
           + '<button type="button" class="mv" data-key="' + k + '" data-dir="-1"' + (i === 0 ? ' disabled' : '') + ' aria-label="Move up">&#9650;</button>'
           + '<button type="button" class="mv" data-key="' + k + '" data-dir="1"' + (i === rows.length - 1 ? ' disabled' : '') + ' aria-label="Move down">&#9660;</button>'
@@ -851,7 +881,8 @@
       + '<div class="bulbs" aria-hidden="true"></div>'
       + '<div class="stats"><span><b>' + FILMS.length + '</b> films</span>'
       + '<span><b>' + out + '</b> released</span><span><b>' + (FILMS.length - out) + '</b> still to come</span>'
-      + '<span><b>' + n + '</b> watched</span></div>'
+      + '<span><b>' + n + '</b> watched</span>'
+      + '<span><b>' + partnerCount() + '</b> with partner</span></div>'
       + '<nav class="nav" role="tablist">'
       + '<button type="button" role="tab" data-view="programme" aria-selected="' + (view === 'programme') + '">Programme</button>'
       + '<button type="button" role="tab" data-view="watched" aria-selected="' + (view === 'watched') + '">Ranked &amp; graded</button>'
@@ -875,6 +906,7 @@
         + '<button type="button" data-filter="all" aria-pressed="' + (filter === 'all') + '">All</button>'
         + '<button type="button" data-filter="out" aria-pressed="' + (filter === 'out') + '">Released</button>'
         + '<button type="button" data-filter="upcoming" aria-pressed="' + (filter === 'upcoming') + '">Coming soon</button>'
+        + '<button type="button" data-filter="partner" aria-pressed="' + (filter === 'partner') + '">With partner</button>'
         + '</div><input id="q" type="search" placeholder="Search title, director, cast&hellip;" aria-label="Search films" value="' + esc(term) + '"></div>';
     }
 
@@ -981,6 +1013,17 @@
     if (ev.target.classList && ev.target.classList.contains('gsel')) {
       var e = find(ev.target.dataset.key);
       if (e) { e.grade = ev.target.value; render(); queueSave(); }
+      return;
+    }
+    if (ev.target.classList && ev.target.classList.contains('pchk')) {
+      var pid = ev.target.dataset.id, pf = byId[pid];
+      if (!pf) return;
+      pf.withPartner = ev.target.checked;
+      render(); queueSave('films');
+      // render() replaced the box that was just clicked; put focus back on the
+      // new one so keyboard toggling does not dump you at the top of the page.
+      var again = root.querySelector('.pchk[data-id="' + pid + '"]');
+      if (again) again.focus();
     }
   });
 

@@ -55,6 +55,7 @@ for m in movies:
         'url': m['url'],
         'list': m['list'],
         'note': note,
+        'withPartner': False,
         'search': ' '.join([m['title'], m['desc'], crew, cast, note]).lower(),
     })
 
@@ -72,6 +73,16 @@ if kept:
             films.append(f)
     print('carried over %d hand-added film(s): %s'
           % (len(kept), ', '.join(f['title'] for f in kept)))
+
+# withPartner is set on the site, not derived from the Trello card, so a rebuild
+# would drop it on all 43 researched films unless it is carried across by id.
+flagged = {f['id'] for f in existing if f.get('withPartner')}
+for f in films:
+    if f['id'] in flagged:
+        f['withPartner'] = True
+    f.setdefault('withPartner', False)
+if flagged:
+    print('carried over %d "with partner" flag(s)' % len(flagged))
 
 MONTHS = ['January','February','March','April','May','June','July','August',
           'September','October','November','December']
