@@ -371,7 +371,7 @@
 
   var GRADES = ['A+','A','A-','B+','B','B-','C+','C','C-','D+','D','D-','E+','E','E-','F'];
 
-  var FILMS = [], data = { _readme: [], films: [] };
+  var FILMS = [], MOVIES = null, data = { _readme: [], films: [] };
   var byId = {};
   var view = 'programme', filter = 'all', term = '', showJSON = false;
   var dirty = false, saving = false, conflictNote = '';
@@ -564,21 +564,43 @@
      current blob sha, and how to serialise it. */
   var FILES = {
     watched: {
-      path: 'data/watched.json', sha: null, timer: null,
+      path: 'data/watched.json', sha: null, timer: null, pending: {},
       message: 'Update watched list',
       body: function () { return JSON.stringify(data, null, 2) + '\n'; }
     },
     films: {
-      path: 'data/films.json', sha: null, timer: null,
+      path: 'data/films.json', sha: null, timer: null, pending: {},
       message: 'Update film list',
       body: function () { return JSON.stringify(FILMS, null, 1) + '\n'; }
+    },
+    // The source build_data.py regenerates films.json from. Dropping a film
+    // here is what stops a rebuild bringing it back. Written exactly as
+    // final.py wrote it — indent 1, raw non-ASCII, and no trailing newline —
+    // so a deletion diffs one entry instead of all 25KB.
+    movies: {
+      path: '.research/movies.json', sha: null, timer: null, pending: {},
+      message: 'Update source film list',
+      body: function () { return JSON.stringify(MOVIES, null, 1); }
     }
   };
 
-  function queueSave(which) {
+  /* ---------- commit messages ----------
+     Saves are debounced and coalesce, so one commit can cover several edits.
+     Each note is keyed, which lets forty keystrokes in a reason field collapse
+     to a single line rather than forty. */
+  function messageFor(F) {
+    var keys = Object.keys(F.pending);
+    if (!keys.length) return F.message;                     // e.g. a flushed draft
+    if (keys.length === 1) return F.pending[keys[0]];
+    return F.message + ' (' + keys.length + ' changes)\n\n'
+      + keys.map(function (k) { return '- ' + F.pending[k]; }).join('\n');
+  }
+
+  function queueSave(which, key, text) {
     which = which || 'watched';
     var F = FILES[which];
     dirty = true;
+    if (key && text) F.pending[key] = text;
     if (which === 'watched') {
       try { localStorage.setItem('watched.draft', JSON.stringify(data)); } catch (e) {}
     }
@@ -595,7 +617,7 @@
     var c = cfg();
     try {
       if (F.sha === null) await refreshSha(which);
-      var body = { message: F.message, content: b64encode(F.body()), branch: c.branch };
+      var body = { message: messageFor(F), content: b64encode(F.body()), branch: c.branch };
       if (F.sha) body.sha = F.sha;
       var r = await fetch('https://api.github.com/repos/' + c.owner + '/' + c.repo
         + '/contents/' + F.path, {
@@ -624,6 +646,7 @@
       F.sha = j.content && j.content.sha;
       lastCommit = j.commit && j.commit.sha;   // what Pages now has to build
       dirty = false;
+      F.pending = {};   // only on success, so a retry keeps its detail
       if (which === 'watched') { try { localStorage.removeItem('watched.draft'); } catch (e) {} }
       say(conflictNote ? 'Saved (overwrote)' : 'Saved', 'ok');
       deploy.state = 'pending';
@@ -761,8 +784,7 @@
     var mark = e ? '<span class="watched-on">No.' + e.rank + (e.grade ? ' &middot; ' + esc(e.grade) : '') + '</span>' : '';
     // Only films added through the page can be removed here; the researched 43
     // are rebuilt from .research and would come straight back.
-    var unlist = f.addedHere
-      ? '<button type="button" class="rm unlist" data-id="' + esc(f.id) + '">Remove</button>' : '';
+    var unlist = '<button type="button" class="rm unlist" data-id="' + esc(f.id) + '">Remove</button>';
     var meta = (f.cast ? '<span><span class="k">Cast</span>' + esc(f.cast) + '</span>' : '')
       + (f.note ? '<span><span class="k">Card</span>&ldquo;' + esc(f.note) + '&rdquo; <span class="from">&middot; ' + esc(f.list) + '</span></span>'
                 : '<span><span class="k">Card</span><span class="from">' + esc(f.list) + '</span></span>');
@@ -945,6 +967,68 @@
     paintDeploy();
   }
 
+  /* ---------- removing a film ----------
+     Deleted means deleted: out of films.json, and out of .research/movies.json
+     so a rebuild cannot bring it back. A watch-log entry is not dropped with it
+     — it is rewritten into the off-board shape the schema already supports,
+     because a dangling filmId is a fatal error in build_data.py. */
+
+  // Fetched only when something is deleted; no reason to pull 25KB of source
+  // data on every page load.
+  async function loadMovies() {
+    if (MOVIES) return MOVIES;
+    var c = cfg();
+    var h = { 'Accept': 'application/vnd.github+json' };
+    if (c.token) h.Authorization = 'Bearer ' + c.token;
+    var r = await fetch('https://api.github.com/repos/' + c.owner + '/' + c.repo
+      + '/contents/' + FILES.movies.path + '?ref=' + encodeURIComponent(c.branch),
+      { headers: h, cache: 'no-store' });
+    if (!r.ok) throw new Error('movies.json ' + r.status);
+    var j = await r.json();
+    FILES.movies.sha = j.sha;
+    MOVIES = JSON.parse(b64decode(j.content));
+    return MOVIES;
+  }
+
+  async function removeFilm(rid) {
+    var gone = byId[rid];
+    if (!gone) return;
+    var e = entryFor(rid);
+    var ask = 'Remove "' + gone.title + '" from the programme?';
+    if (e) {
+      ask += '\n\nIt stays in your ranked log at No.' + e.rank
+        + (e.grade ? ' (' + e.grade + ')' : '') + ', as an off-board entry.';
+    }
+    if (!confirm(ask)) return;
+
+    FILMS = FILMS.filter(function (x) { return x.id !== rid; });
+    delete byId[rid];
+
+    if (e) {
+      // Becomes self-contained, carrying the details the film record supplied.
+      e.filmId = null;
+      e.director = gone.director || '';
+      e.release = gone.release || '';
+      e.url = gone.url || null;
+      queueSave('watched', 'offboard:' + rid, 'Keep ' + gone.title + ' in the log as off-board');
+    }
+    render();
+    queueSave('films', 'rmfilm:' + rid, 'Remove ' + gone.title + ' from the programme');
+
+    // A hand-added film was never in movies.json, so there is nothing to drop.
+    if (gone.addedHere) return;
+    try {
+      await loadMovies();
+      var before = MOVIES.length;
+      MOVIES = MOVIES.filter(function (m) { return m.title !== gone.title; });
+      if (MOVIES.length !== before) {
+        queueSave('movies', 'rmsource:' + rid, 'Remove ' + gone.title + ' from the source list');
+      }
+    } catch (err) {
+      say('Removed — but the source list failed, a rebuild may restore it', 'err');
+    }
+  }
+
   /* ---------- events ---------- */
   function find(k) { return data.films.filter(function (e) { return keyOf(e) === k; })[0] || null; }
 
@@ -957,32 +1041,44 @@
     if (el.id === 'dismiss') { conflictNote = ''; render(); return; }
 
     if (el.classList.contains('seen')) {
-      var id = el.dataset.id, f = byId[id];
-      if (entryFor(id)) {
+      var id = el.dataset.id, f = byId[id], was = !!entryFor(id);
+      if (was) {
         data.films = data.films.filter(function (e) { return e.filmId !== id; });
       } else {
         data.films.push({ rank: data.films.length + 1, title: f.title, filmId: id, grade: '', reason: '' });
       }
-      renumber(); render(); queueSave(); return;
+      renumber(); render();
+      queueSave('watched', 'seen:' + id,
+        was ? 'Unmark ' + f.title + ' as watched' : 'Mark ' + f.title + ' watched');
+      return;
     }
     if (el.classList.contains('mv')) {
       var rows = ordered(), me = find(el.dataset.key);
       var i = rows.indexOf(me), j = i + Number(el.dataset.dir);
       if (j < 0 || j >= rows.length) return;
       var tmp = rows[i].rank; rows[i].rank = rows[j].rank; rows[j].rank = tmp;
-      renumber(); render(); queueSave(); return;
+      renumber(); render();
+      queueSave('watched', 'rank:' + el.dataset.key, 'Move ' + me.title + ' to #' + me.rank);
+      return;
     }
-    if (el.classList.contains('rm')) {
-      var k = el.dataset.key;
+    // Guarded on data-key: the programme's Remove button also carries .rm, and
+    // without this it matched here first and the unlist branch below was dead
+    // code — the film stayed put and a pointless watched.json commit went out.
+    if (el.classList.contains('rm') && el.dataset.key) {
+      var k = el.dataset.key, row = find(k), rt = row ? row.title : k;
       data.films = data.films.filter(function (e) { return keyOf(e) !== k; });
-      renumber(); render(); queueSave(); return;
+      renumber(); render();
+      queueSave('watched', 'rmlog:' + k, 'Remove ' + rt + ' from the log');
+      return;
     }
     if (el.id === 'addbtn') {
       var ti = document.getElementById('addtitle'), title = ti.value.trim();
       if (!title) { ti.focus(); return; }
       data.films.push({ rank: data.films.length + 1, title: title, filmId: null,
                         grade: '', reason: '', director: '', release: '', url: null });
-      renumber(); render(); queueSave(); return;
+      renumber(); render();
+      queueSave('watched', 'addlog:' + title, 'Add ' + title + ' to the log');
+      return;
     }
     if (el.id === 'jtoggle') { showJSON = !showJSON; render(); return; }
 
@@ -996,25 +1092,13 @@
                          url: g('nf-url'), desc: g('nf-desc') });
       FILMS.push(f); byId[f.id] = f; sortFilms();
       term = ''; filter = 'all';
-      render(); queueSave('films');
+      render();
+      queueSave('films', 'addfilm:' + f.id, 'Add ' + f.title + ' to the programme');
       say('Added ' + f.title, 'ok');
       return;
     }
 
-    if (el.classList.contains('unlist')) {
-      var rid = el.dataset.id;
-      var gone = byId[rid];
-      if (!gone || !confirm('Remove "' + gone.title + '" from the programme?')) return;
-      FILMS = FILMS.filter(function (x) { return x.id !== rid; });
-      delete byId[rid];
-      // Drop any watch-log entry that pointed at it, so the files stay consistent.
-      if (data.films.some(function (e) { return e.filmId === rid; })) {
-        data.films = data.films.filter(function (e) { return e.filmId !== rid; });
-        renumber(); queueSave('watched');
-      }
-      render(); queueSave('films');
-      return;
-    }
+    if (el.classList.contains('unlist')) { removeFilm(el.dataset.id); return; }
 
     if (el.id === 'savetok') {
       var v = document.getElementById('tok').value.trim();
@@ -1040,14 +1124,21 @@
   root.addEventListener('change', function (ev) {
     if (ev.target.classList && ev.target.classList.contains('gsel')) {
       var e = find(ev.target.dataset.key);
-      if (e) { e.grade = ev.target.value; render(); queueSave(); }
+      if (e) {
+        e.grade = ev.target.value;
+        render();
+        queueSave('watched', 'grade:' + ev.target.dataset.key,
+          e.grade ? 'Grade ' + e.title + ' ' + e.grade : 'Clear grade for ' + e.title);
+      }
       return;
     }
     if (ev.target.classList && ev.target.classList.contains('pchk')) {
       var pid = ev.target.dataset.id, pf = byId[pid];
       if (!pf) return;
       pf.withPartner = ev.target.checked;
-      queueSave('films');
+      queueSave('films', 'partner:' + pid, ev.target.checked
+        ? 'Watch ' + pf.title + ' with partner'
+        : 'Drop ' + pf.title + ' from the partner list');
       // Deliberately no render() here. Replacing the checkbox while its own
       // click is still being dispatched makes the event fire again against the
       // fresh element, so one tick saved true and then wrote false on top of
@@ -1069,7 +1160,12 @@
     }
     if (ev.target.classList && ev.target.classList.contains('rin') && ev.target.dataset.key) {
       var e = find(ev.target.dataset.key);
-      if (e) { e.reason = ev.target.value; queueSave(); }   // no re-render: keep focus
+      // No re-render: keep focus. The note is keyed, so a burst of typing
+      // collapses to one line in the commit message.
+      if (e) {
+        e.reason = ev.target.value;
+        queueSave('watched', 'reason:' + ev.target.dataset.key, 'Note on ' + e.title);
+      }
     }
   });
 

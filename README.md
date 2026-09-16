@@ -2,9 +2,9 @@
 
 [![Pages](https://github.com/mdewey/2026-movies/actions/workflows/pages/pages-build-deployment/badge.svg)](https://github.com/mdewey/2026-movies/actions/workflows/pages/pages-build-deployment)
 
-A single static page that lists 43 films from the 2026 Trello board, plus a
+A single static page that lists the films from the 2026 Trello board, plus a
 ranked, graded log of the ones you have watched. No server, no build step for
-day-to-day use: the page reads two JSON files and commits changes back to this
+day-to-day use: the page reads its JSON data and commits changes back to this
 repo through the GitHub API.
 
 > Replace `OWNER` in the badge above with your GitHub username (two places), or
@@ -17,7 +17,8 @@ repo through the GitHub API.
 | `index.html` | The whole app. Plain HTML/CSS/JS, no dependencies. |
 | `data/films.json` | The film list. Mostly generated; films you add on the site, and the *With partner* flag, are merged in and kept. |
 | `data/watched.json` | Your ranking, grades and reasons. **Yours to edit.** |
-| `.research/` | Scratch: the scripts that built `films.json`. The Trello export lives here too but is gitignored — it holds the whole personal board, not just movies. |
+| `.research/movies.json` | The source of truth `films.json` is built from. The page edits this one when you delete a film. |
+| `.research/` | The scripts that built `films.json`. The Trello export lives here too but is gitignored — it holds the whole personal board, not just movies. |
 
 ## Setup
 
@@ -44,17 +45,33 @@ repo through the GitHub API.
 
 ## Editing
 
-Three ways, all writing the same file:
+Three ways:
 
 - **On the site.** Grade dropdown, one-line reason, arrows to reorder, "Mark
-  watched" and a "With partner" checkbox on any film. Each change commits about
-  a second later — `data/watched.json`, or `data/films.json` for the checkbox.
-  The chip in the corner shows *Saving… / Saved*.
+  watched", a "With partner" checkbox and **Remove** on any film. Each change
+  commits about a second later — `data/watched.json` for the log,
+  `data/films.json` for the checkbox, and both plus `.research/movies.json` for
+  a deletion. The chip in the corner shows *Saving… / Saved*.
 - **On github.com.** Edit `data/watched.json` directly — works fine on a phone.
 - **Locally.** Edit the file, commit, push.
 
 Every save is a commit, so the file's history is your undo: `git log -p
 data/watched.json`, or the History button on GitHub.
+
+Commits say what actually changed. A single edit becomes the subject line —
+`Grade Mother Mary A-`. Several edits caught by one save get a summary and a
+bulleted body:
+
+```text
+Update watched list (3 changes)
+
+- Grade Mother Mary A-
+- Move Project Hail Mary to #1
+- Note on Obsession
+```
+
+Each note is keyed by what it touched, so a burst of typing in a reason field
+collapses to one line rather than forty.
 
 ### `watched.json` shape
 
@@ -72,7 +89,8 @@ data/watched.json`, or the History button on GitHub.
 - `grade` — `A`–`F`, optionally with `+` or `-`. `""` means ungraded.
 - `filmId` — an `id` from `films.json`, linking the entry to a board film so it
   also shows as watched in the Programme. `null` for a film that was never on
-  the board, which then supplies its own `director`, `release` and `url`.
+  the board — or one you have since removed — which then supplies its own
+  `director`, `release` and `url`.
 
 ### Watching together
 
@@ -117,6 +135,12 @@ The site commits to `data/**` constantly, so the workflow deliberately does
 pushes made with `GITHUB_TOKEN` do not start further workflow runs, and the
 commit step exits early when the rebuild produces no diff.
 
+Deleting a film is the one time the page *does* write to `.research/`, and that
+starts exactly one rebuild — which is the point, since it is what stops the film
+coming back. The rebuild regenerates the same `films.json` the page has already
+written, so the commit step finds no diff and exits. If the two overlap, the
+workflow rebases onto whatever the site committed while it ran.
+
 The workflow and the page write `films.json` identically (`indent=1`, trailing
 newline, LF via `.gitattributes`), so a CI rebuild and a save from the page
 never fight over whitespace.
@@ -129,11 +153,24 @@ decides *Released* vs *Coming soon*. The entry is appended to
 `data/films.json`, sorted into release order, and committed — the same path
 grades take.
 
-Films added this way carry `"addedHere": true`. That flag does two jobs:
+Films added this way carry `"addedHere": true`, which tells `build_data.py` to
+**carry them across a rebuild** instead of overwriting them. It also means they
+were never in `.research/movies.json`, so removing one never touches that file.
 
-- they get a **Remove** button on the page (the researched 43 do not, since a
-  rebuild would just bring them back);
-- `build_data.py` **carries them across a rebuild** instead of overwriting them.
+## Removing a film
+
+Every film has a **Remove** button now, researched or hand-added. Removing one:
+
+- drops it from `data/films.json`, so it leaves the Programme immediately;
+- drops it from `.research/movies.json` too, unless it was hand-added — this is
+  what stops the next rebuild quietly restoring it;
+- **keeps any ranked entry**, rewriting it into the off-board shape with its own
+  `director`, `release` and `url`. Removing a film from the programme is not the
+  same as un-watching it, and a dangling `filmId` would fail the build.
+
+It is not reversible from the page: recover it with `git revert`, or add it back
+through *Add a film to the programme*. A removed film's `withPartner` flag goes
+with it, since that lives on the record being deleted.
 
 ## Deployment status on the page
 
@@ -173,7 +210,8 @@ Notes:
   overwrites the first and the page says so. The overwritten version is still in
   the commit history.
 - **The Pages copy lags a commit by up to a minute.** The site sidesteps this by
-  reading `watched.json` through the GitHub API, which is immediate; the static
-  file is only a fallback.
+  reading `watched.json` and `films.json` through the GitHub API, which is
+  immediate; the static files are only a fallback. Without that, a toggle read
+  back a stale copy and the next save wrote it straight over the top.
 - **A public repo means a public list.** Anyone with the URL can read your
   grades. Only writing is gated by the token.
