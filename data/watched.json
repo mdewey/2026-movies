@@ -6,7 +6,8 @@
     "grade: A B C D E F, optionally with + or - (A-, B+). Leave \"\" if undecided.",
     "reason: one short line on why. Shown under the title.",
     "filmId: links to a film on the 2026 Trello board. null means it was never on the board,",
-    "        in which case director / release / url on the entry supply its details."
+    "        in which case director / release / url on the entry supply its details.",
+    "withPartner: true on an entry with no filmId means you watched it with your partner. For a film on the board the flag lives on the film record instead."
   ],
   "films": [
     {
@@ -19,42 +20,30 @@
     {
       "rank": 4,
       "title": "Spider-Man: Brand New Day",
-      "filmId": null,
+      "filmId": "spider-man-brand-new-day",
       "grade": "B+",
-      "reason": "A fun action, coming of age story that expands the mcu in a good direction",
-      "director": "Destin Daniel Cretton",
-      "release": "31 July 2026",
-      "url": "https://en.wikipedia.org/wiki/Spider-Man:_Brand_New_Day"
+      "reason": "A fun action, coming of age story that expands the mcu in a good direction"
     },
     {
       "rank": 5,
       "title": "The Sheep Detectives",
-      "filmId": null,
+      "filmId": "the-sheep-detectives",
       "grade": "B+",
-      "reason": "Funny sheep make me smile",
-      "director": "Kyle Balda",
-      "release": "8 May 2026",
-      "url": "https://en.wikipedia.org/wiki/The_Sheep_Detectives"
+      "reason": "Funny sheep make me smile"
     },
     {
       "rank": 8,
       "title": "Masters of the Universe",
-      "filmId": null,
+      "filmId": "masters-of-the-universe",
       "grade": "B",
-      "reason": "",
-      "director": "Travis Knight",
-      "release": "5 June 2026",
-      "url": "https://en.wikipedia.org/wiki/Masters_of_the_Universe_(2026_film)"
+      "reason": ""
     },
     {
       "rank": 7,
       "title": "The Odyssey",
-      "filmId": null,
+      "filmId": "the-odyssey",
       "grade": "B",
-      "reason": "",
-      "director": "Christopher Nolan",
-      "release": "17 July 2026",
-      "url": "https://en.wikipedia.org/wiki/The_Odyssey_(2026_film)"
+      "reason": ""
     },
     {
       "rank": 10,

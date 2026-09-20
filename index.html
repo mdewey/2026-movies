@@ -508,13 +508,36 @@
      A boolean on the film itself, so it sits with the film's other facts and
      commits to films.json; build_data.py carries it across a rebuild. A ranked
      entry with no filmId has no film record to hold it, so it gets no box. */
-  function isPartner(f) { return !!(f && f.withPartner); }
-  function partnerCount() { return FILMS.filter(isPartner).length; }
+  /* ---------- watched with your partner ----------
+     A film on the programme keeps the flag on its own record, in films.json.
+     A log entry with no film behind it — something watched that was never on
+     the board — keeps its own, in watched.json, because there is nothing else
+     to hang it on. The two never overlap: an entry with a filmId defers to the
+     film, so nothing is counted twice. */
+
+  function isPartner(x) { return !!(x && x.withPartner); }
+
+  function partnerCount() {
+    return FILMS.filter(isPartner).length
+      + data.films.filter(function (e) { return !e.filmId && isPartner(e); }).length;
+  }
+
+  // attr is what the click handler reads back to find the thing again: a film
+  // id, or an entry key when the flag lives on the log entry itself.
+  function partnerChk(attr, value, on, label) {
+    return '<label class="withp"><input type="checkbox" class="pchk" '
+      + attr + '="' + esc(value) + '"' + (on ? ' checked' : '')
+      + ' aria-label="Watch ' + esc(label) + ' with partner"> With partner</label>';
+  }
+
   function partnerBox(f) {
-    if (!f) return '';
-    return '<label class="withp"><input type="checkbox" class="pchk" data-id="' + esc(f.id) + '"'
-      + (f.withPartner ? ' checked' : '') + ' aria-label="Watch ' + esc(f.title)
-      + ' with partner"> With partner</label>';
+    return f ? partnerChk('data-id', f.id, f.withPartner, f.title) : '';
+  }
+
+  // For a row in the ranked log, which may or may not have a film behind it.
+  function partnerBoxFor(e) {
+    var f = e.filmId ? byId[e.filmId] : null;
+    return f ? partnerBox(f) : partnerChk('data-key', keyOf(e), e.withPartner, e.title);
   }
 
   /* ---------- load ---------- */
@@ -975,7 +998,7 @@
           + '<div class="wctl">' + gradeSelect(e)
           + '<input type="text" class="rin" data-key="' + k + '" value="' + esc(e.reason || '')
           + '" placeholder="Why? one line&hellip;" aria-label="Reason for ' + t + '">'
-          + partnerBox(e.filmId ? byId[e.filmId] : null)
+          + partnerBoxFor(e)
           + '<span class="movers">'
           + '<button type="button" class="mv" data-key="' + k + '" data-dir="-1"' + (i === 0 ? ' disabled' : '') + ' aria-label="Move up">&#9650;</button>'
           + '<button type="button" class="mv" data-key="' + k + '" data-dir="1"' + (i === rows.length - 1 ? ' disabled' : '') + ' aria-label="Move down">&#9660;</button>'
@@ -1114,11 +1137,13 @@
     delete byId[rid];
 
     if (e) {
-      // Becomes self-contained, carrying the details the film record supplied.
+      // Becomes self-contained, carrying the details the film record supplied
+      // — including the partner flag, which would otherwise go with the film.
       e.filmId = null;
       e.director = gone.director || '';
       e.release = gone.release || '';
       e.url = gone.url || null;
+      if (gone.withPartner) e.withPartner = true;
       queueSave('watched', 'offboard:' + rid, 'Keep ' + gone.title + ' in the log as off-board');
     }
     render();
@@ -1254,12 +1279,17 @@
       return;
     }
     if (ev.target.classList && ev.target.classList.contains('pchk')) {
-      var pid = ev.target.dataset.id, pf = byId[pid];
-      if (!pf) return;
-      pf.withPartner = ev.target.checked;
-      queueSave('films', 'partner:' + pid, ev.target.checked
-        ? 'Watch ' + pf.title + ' with partner'
-        : 'Drop ' + pf.title + ' from the partner list');
+      var on = ev.target.checked, pid = ev.target.dataset.id, target, which, slot;
+      if (pid) {                                  // the flag lives on the film
+        target = byId[pid]; which = 'films'; slot = pid;
+      } else {                                    // ...or on the log entry itself
+        slot = ev.target.dataset.key; target = find(slot); which = 'watched';
+      }
+      if (!target) return;
+      target.withPartner = on;
+      queueSave(which, 'partner:' + slot, on
+        ? 'Watch ' + target.title + ' with partner'
+        : 'Drop ' + target.title + ' from the partner list');
       // Deliberately no render() here. Replacing the checkbox while its own
       // click is still being dispatched makes the event fire again against the
       // fresh element, so one tick saved true and then wrote false on top of
