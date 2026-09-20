@@ -21,11 +21,19 @@
     --ok:#7fd6a8;
   }
   * { box-sizing:border-box; }
-  html { color-scheme:dark; }
+  /* The masthead glow deliberately bleeds past the text column; clip keeps
+     that bleed from turning into a sideways scroll on a phone. It has to be
+     on body as well as html: the root's overflow propagates to the viewport
+     and the root itself is then treated as visible, so on its own it leaves
+     the glow contributing to the scrollable area. Clip, never hidden --
+     hidden would make this a scroll container and kill sticky .controls. */
+  html { color-scheme:dark; overflow-x:clip; }
   body {
+    overflow-x:clip;
     margin:0; background:var(--ground); color:var(--ink);
     font-family:Archivo,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
     font-size:15px; line-height:1.55; -webkit-font-smoothing:antialiased;
+    -webkit-text-size-adjust:100%;
   }
   img { max-width:100%; }
   [hidden] { display:none !important; }
@@ -101,7 +109,7 @@
     background:linear-gradient(var(--ground) 78%, rgba(20,17,16,0));
     display:flex; flex-wrap:wrap; gap:.55rem; align-items:center; padding:.9rem 0 1.1rem;
   }
-  .filters { display:flex; gap:.4rem; }
+  .filters { display:flex; flex-wrap:wrap; gap:.4rem; }
   .filters button {
     font-family:"IBM Plex Mono",ui-monospace,monospace; font-size:.7rem;
     letter-spacing:.12em; text-transform:uppercase; cursor:pointer;
@@ -286,7 +294,18 @@
   }
   .addbox p { margin:0 0 .85rem; font-size:.83rem; color:var(--muted); max-width:52ch; }
   .addrow { display:flex; flex-wrap:wrap; gap:.5rem; }
+  .addrow + .addrow { margin-top:.5rem; }
   .addrow .tin { flex:1; min-width:13rem; }
+  /* Field widths live here rather than inline so the mobile query can
+     collapse every one of them to a full row. */
+  .in-title { flex:2 1 14rem; }
+  .in-date  { flex:0 0 10rem; }
+  .in-name  { flex:1 1 11rem; }
+  .in-url   { flex:1 1 12rem; }
+  .in-full  { flex:1 1 100%; }
+  .in-owner { max-width:11rem; }
+  .in-repo  { max-width:13rem; }
+  #jout { flex:1 1 100%; font-family:"IBM Plex Mono",ui-monospace,monospace; font-size:.72rem; }
   .addrow button {
     font-family:"IBM Plex Mono",ui-monospace,monospace; font-size:.7rem;
     letter-spacing:.12em; text-transform:uppercase; cursor:pointer;
@@ -309,6 +328,7 @@
   }
   .sync a { color:var(--brass); }
   .syncrow { display:flex; flex-wrap:wrap; gap:.5rem; align-items:center; }
+  .syncrow + .syncrow { margin-top:.9rem; }
   .syncrow .tin { flex:1; min-width:15rem; }
   .repoline {
     margin:.9rem 0 0; font-family:"IBM Plex Mono",ui-monospace,monospace;
@@ -344,14 +364,71 @@
   }
   footer a { color:var(--brass); }
 
+  /* ---- the small screen ----
+     Same auditorium, one column. Everything that was a row of controls
+     beside something else becomes a row of its own. */
   @media (max-width:600px) {
+    .wrap { padding:0 1rem 4rem; }
+    header { padding:2.2rem 0 1.1rem; }
+    .stats { gap:.35rem 1.1rem; }
+    .month-head { margin-top:2rem; gap:.6rem; }
+
+    /* The two tab labels plus "Synced" do not fit 320px at full tracking,
+       so the tracking goes rather than the words. Wrap is the safety net. */
+    .nav { gap:.55rem; flex-wrap:wrap; }
+    .nav button { font-size:.64rem; letter-spacing:.08em; }
+
+    /* Filters take one row, search the next. */
+    .controls { gap:.5rem; padding:.75rem 0 .9rem; }
+    .filters { flex:1 1 100%; }
+    .filters button { flex:1 1 auto; }
+    #q { flex:1 1 100%; min-width:0; }
+
+    /* 16px is the threshold below which iOS Safari zooms the page on focus.
+       #jout is a readonly JSON dump and stays small. */
+    #q, .tin, .rin, .gsel { font-size:16px; }
+    #jout { font-size:.72rem; }
+
     .film { grid-template-columns:1.1rem 1fr; gap:0 .85rem; }
     .rail { grid-column:2; display:flex; align-items:baseline; gap:.45rem; text-align:left; padding-top:0; margin-bottom:.15rem; }
     .rail-day { font-size:1rem; }
     .entry { grid-column:2; }
     .strip { grid-row:1 / span 2; }
     .frame { height:14px; }
+
+    /* The title gets its own line; the buttons stop fighting it for space. */
+    .title { flex:1 1 100%; font-size:1.25rem; }
+    .entry-head { gap:.45rem; }
+
+    .wrow { grid-template-columns:2.1rem 1fr; gap:0 .8rem; }
+    .wrank { font-size:1.5rem; }
+    .wtitle { font-size:1.2rem; }
+    .rin { flex:1 1 100%; min-width:0; }
     .movers { margin-left:0; }
+
+    .addbox, .sync { padding:1rem; }
+    .addrow .tin, .syncrow .tin,
+    .in-title, .in-date, .in-name, .in-url, .in-owner, .in-repo {
+      flex:1 1 100%; min-width:0; max-width:none;
+    }
+  }
+
+  /* ---- thumbs, not cursors ----
+     Keyed to the pointer as well as the width, so a tablet gets the same hit
+     areas and a phone that misreports itself as fine-pointered still does.
+     The type stays small; the padding does the work. */
+  @media (pointer:coarse), (max-width:600px) {
+    .nav button { padding:.9rem .2rem; }
+    .filters button { min-height:2.75rem; padding:.6rem .85rem; }
+    .seen, .withp { min-height:2.75rem; padding:.55rem .75rem; }
+    .rm, .ghbtn { min-height:2.5rem; padding:.5rem .75rem; }
+    .mv { min-height:2.5rem; min-width:2.5rem; padding:.5rem .6rem; }
+    .addrow button { min-height:2.75rem; padding:.6rem 1.1rem; }
+    .gsel { min-height:2.5rem; }
+    .withp input { width:1.05rem; height:1.05rem; }
+    #q, .tin, .rin { padding:.55rem .7rem; }
+    .banner button { min-height:2.25rem; padding:.4rem .7rem; }
+    a, button, label, input, select { -webkit-tap-highlight-color:rgba(217,164,65,.18); }
   }
 </style>
 </head>
@@ -803,14 +880,14 @@
       + '<p>Goes into <code>data/films.json</code> and slots into release order. '
       + 'Only the title is required.</p>'
       + '<div class="addrow">'
-      + '<input type="text" class="tin" id="nf-title" placeholder="Title" aria-label="Title" style="flex:2 1 14rem">'
-      + '<input type="date" class="tin" id="nf-date" aria-label="Release date" style="flex:0 0 10rem">'
-      + '</div><div class="addrow" style="margin-top:.5rem">'
-      + '<input type="text" class="tin" id="nf-director" placeholder="Director" aria-label="Director" style="flex:1 1 11rem">'
-      + '<input type="url" class="tin" id="nf-url" placeholder="Link (optional)" aria-label="Link" style="flex:1 1 12rem">'
-      + '</div><div class="addrow" style="margin-top:.5rem">'
-      + '<input type="text" class="tin" id="nf-desc" placeholder="One-line synopsis" aria-label="Synopsis" style="flex:1 1 100%">'
-      + '</div><div class="addrow" style="margin-top:.5rem">'
+      + '<input type="text" class="tin in-title" id="nf-title" placeholder="Title" aria-label="Title">'
+      + '<input type="date" class="tin in-date" id="nf-date" aria-label="Release date">'
+      + '</div><div class="addrow">'
+      + '<input type="text" class="tin in-name" id="nf-director" placeholder="Director" aria-label="Director">'
+      + '<input type="url" class="tin in-url" id="nf-url" placeholder="Link (optional)" aria-label="Link">'
+      + '</div><div class="addrow">'
+      + '<input type="text" class="tin in-full" id="nf-desc" placeholder="One-line synopsis" aria-label="Synopsis">'
+      + '</div><div class="addrow">'
       + '<button type="button" id="nf-add">Add film</button></div></div>';
   }
 
@@ -882,7 +959,7 @@
     html += '<div class="addbox"><h3>' + (showJSON ? '&#9660;' : '&#9654;') + ' <button type="button" id="jtoggle" class="ghbtn">'
       + (showJSON ? 'Hide' : 'Show') + ' JSON</button></h3>'
       + '<p>Exactly what lives in <code>data/watched.json</code>.</p>'
-      + (showJSON ? '<textarea class="rin" id="jout" readonly rows="12" spellcheck="false" style="flex:1 1 100%;font-family:monospace;font-size:.72rem">'
+      + (showJSON ? '<textarea class="rin" id="jout" readonly rows="12" spellcheck="false">'
           + esc(JSON.stringify(data, null, 2)) + '</textarea>' : '') + '</div>';
     return html;
   }
@@ -911,9 +988,9 @@
         + '<div class="syncrow"><input type="password" class="tin" id="tok" placeholder="github_pat_…" '
         + 'autocomplete="off" aria-label="GitHub token"><button type="button" class="ghbtn" id="savetok">Connect</button></div>';
     }
-    html += '<div class="syncrow" style="margin-top:.9rem">'
-      + '<input type="text" class="tin" id="ownerin" placeholder="owner" value="' + esc(c.owner) + '" aria-label="Repository owner" style="max-width:11rem">'
-      + '<input type="text" class="tin" id="repoin" placeholder="repo" value="' + esc(c.repo) + '" aria-label="Repository name" style="max-width:13rem">'
+    html += '<div class="syncrow">'
+      + '<input type="text" class="tin in-owner" id="ownerin" placeholder="owner" value="' + esc(c.owner) + '" aria-label="Repository owner">'
+      + '<input type="text" class="tin in-repo" id="repoin" placeholder="repo" value="' + esc(c.repo) + '" aria-label="Repository name">'
       + '<button type="button" class="ghbtn" id="saverepo">Set repo</button></div>'
       + '<p class="repoline">Target: ' + esc(where) + '</p></div>';
     return html;
