@@ -546,23 +546,61 @@
     return id;
   }
 
+  /* ---------- released, as of today ----------
+     films.json carries a status, but it is a snapshot taken whenever the file
+     was last built: nothing rebuilds the repo just because a date rolled past,
+     so a released film sits there labelled "Coming soon" indefinitely. The
+     date is the fact; the status is derived from it on every load instead. */
+
+  function todayStart() { var d = new Date(); d.setHours(0, 0, 0, 0); return d; }
+
+  // Reads the release line the build writes: "January 16, 2026", or
+  // "May 2026" for a festival slot with no announced day. Returns null when
+  // there is no date to judge by, which leaves the stored status alone.
+  function releasedBy(release, today) {
+    if (!release) return null;
+    var m = /^([A-Za-z]+)\s+(?:(\d{1,2}),\s*)?(\d{4})$/.exec(String(release).trim());
+    if (!m) return null;
+    var mi = MONTHS.indexOf(m[1]);
+    if (mi < 0) return null;
+    var year = Number(m[3]);
+    // A month on its own is not called released until the month is over —
+    // any day still in it could be the one.
+    return m[2] ? new Date(year, mi, Number(m[2])) <= today
+                : new Date(year, mi + 1, 1) <= today;
+  }
+
+  function applyStatus(f, today) {
+    var out = releasedBy(f.release, today);
+    if (out === null) return;                    // undated: keep whatever it came with
+    f.status = out ? 'out' : 'upcoming';
+    f.statusLabel = out ? 'Released' : 'Coming soon';
+  }
+
+  // Redone whenever the date changes, so a page left open overnight catches up
+  // on its own rather than needing a reload.
+  var statusDay = '';
+  function refreshStatus() {
+    var today = todayStart(), stamp = today.toDateString();
+    if (stamp === statusDay) return;
+    statusDay = stamp;
+    FILMS.forEach(function (f) { applyStatus(f, today); });
+  }
+
   function makeFilm(v) {
-    var month = null, day = null, release = '', status = 'upcoming';
+    var month = null, day = null, release = '';
     if (v.date) {
       var p = v.date.split('-');                 // yyyy-mm-dd from <input type=date>
       month = MONTHS[Number(p[1]) - 1];
       day = String(Number(p[2]));
       release = month + ' ' + day + ', ' + p[0];
-      // Compare as plain dates so a released film is not marked upcoming.
-      var today = new Date(); today.setHours(0, 0, 0, 0);
-      status = new Date(p[0], Number(p[1]) - 1, Number(p[2])) <= today ? 'out' : 'upcoming';
     }
     var f = {
       id: uniqueId(slug(v.title)),
       title: v.title,
       month: month, day: day, release: release,
-      status: status,
-      statusLabel: status === 'out' ? 'Released' : 'Coming soon',
+      status: 'upcoming',
+      statusLabel: 'Coming soon',
       director: v.director || '',
       crew: v.director ? v.director + ' (director)' : '',
       cast: '',
@@ -574,6 +612,7 @@
       addedHere: true
     };
     f.search = [f.title, f.desc, f.crew].join(' ').toLowerCase();
+    applyStatus(f, todayStart());                // same rule as the loaded films
     return f;
   }
 
@@ -607,6 +646,8 @@
     }
     FILMS = JSON.parse(text);
     FILMS.forEach(function (f) { byId[f.id] = f; });
+    statusDay = '';                  // the file's statuses are a snapshot; redo them
+    refreshStatus();
     sortFilms();
   }
 
@@ -998,6 +1039,7 @@
 
   /* ---------- shell ---------- */
   function render() {
+    refreshStatus();
     var n = data.films.length;
     var out = FILMS.filter(function (f) { return f.status === 'out'; }).length;
     var html = '<header>'
@@ -1143,6 +1185,18 @@
     // code — the film stayed put and a pointless watched.json commit went out.
     if (el.classList.contains('rm') && el.dataset.key) {
       var k = el.dataset.key, row = find(k), rt = row ? row.title : k;
+      // The rank, the grade and the take all go, and the commit follows
+      // immediately, so this asks first — as unlisting a film already did.
+      // What it costs depends on whether the film is still on the programme:
+      // an off-board entry is the only record of itself.
+      if (row) {
+        var ask = 'Remove “' + rt + '” from the ranked log?\n\nNo.' + row.rank
+          + (row.grade ? ' · ' + row.grade : '')
+          + (row.filmId ? '. The film stays on the programme, unmarked.'
+                        : '. It is not on the programme, so this deletes it outright.');
+        if (row.reason) ask += '\nYour take on it goes with it.';
+        if (!confirm(ask)) return;
+      }
       data.films = data.films.filter(function (e) { return keyOf(e) !== k; });
       renumber(); render();
       queueSave('watched', 'rmlog:' + k, 'Remove ' + rt + ' from the log');

@@ -4,12 +4,38 @@
 This is the only generated file in the repo. data/watched.json is yours to
 edit (by hand, or through the site), and index.html is a plain static app.
 """
-import json, io, re, sys
+import datetime, json, io, re, sys
 
 sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
 
 movies = json.load(open('.research/movies.json', encoding='utf-8'))
 STATUS_LABEL = {'out': 'Released', 'upcoming': 'Coming soon', 'unknown': 'Unidentified'}
+MONTHS = ['January', 'February', 'March', 'April', 'May', 'June',
+          'July', 'August', 'September', 'October', 'November', 'December']
+
+
+def status_for(date_str, fallback):
+    """Released or not, as of the day this runs.
+
+    movies.json records the status by hand, which goes stale the moment a
+    release date passes. The date is the fact, so derive from it and keep the
+    recorded value only when there is no date to read. The site does the same
+    sum on every load, so it stays right between builds too.
+
+    A month with no day ("May 2026") is a festival slot: not called released
+    until the month is over, since any day in it could still be to come.
+    """
+    if not date_str:
+        return fallback
+    m = re.match(r'^([A-Za-z]+)\s+(?:(\d{1,2}),\s*)?(\d{4})$', date_str.strip())
+    if not m or m.group(1) not in MONTHS:
+        return fallback
+    month, year, today = MONTHS.index(m.group(1)) + 1, int(m.group(3)), datetime.date.today()
+    if m.group(2):
+        released = datetime.date(year, month, int(m.group(2))) <= today
+    else:
+        released = datetime.date(year + (month == 12), month % 12 + 1, 1) <= today
+    return 'out' if released else 'upcoming'
 
 
 def norm(s):
@@ -40,14 +66,15 @@ for m in movies:
     crew, cast, director = split_credits(m['credits'])
     note = m['card'] if norm(m['card']) != norm(m['title']) else ''
     day = m['day'] if 'day' in m else (m['date'].split(' ')[1].rstrip(',') if m['date'] else None)
+    status = status_for(m['date'], m['status'])
     films.append({
         'id': slug(m['title']),
         'title': m['title'],
         'month': m['date'].split(' ')[0] if m['date'] else None,
         'day': day,
         'release': m['date'],
-        'status': m['status'],
-        'statusLabel': STATUS_LABEL[m['status']],
+        'status': status,
+        'statusLabel': STATUS_LABEL[status],
         'director': director,
         'crew': crew,
         'cast': cast,
@@ -70,6 +97,9 @@ if kept:
     have = {f['id'] for f in films}
     for f in kept:
         if f['id'] not in have:
+            # Their date is as good as any other, so age them the same way.
+            f['status'] = status_for(f.get('release'), f.get('status', 'upcoming'))
+            f['statusLabel'] = STATUS_LABEL[f['status']]
             films.append(f)
     print('carried over %d hand-added film(s): %s'
           % (len(kept), ', '.join(f['title'] for f in kept)))
@@ -84,8 +114,6 @@ for f in films:
 if flagged:
     print('carried over %d "with partner" flag(s)' % len(flagged))
 
-MONTHS = ['January','February','March','April','May','June','July','August',
-          'September','October','November','December']
 films.sort(key=lambda f: (MONTHS.index(f['month']) if f['month'] else 99,
                           int(f['day']) if f['day'] else 99))
 
