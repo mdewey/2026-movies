@@ -956,8 +956,7 @@
     for (var i = 0; i < FILMS.length; i++) lit += '<span class="frame' + (i < boardSeen() ? ' lit' : '') + '"></span>';
     var off = rows.length - boardSeen();
     var html = '<div class="progress-wrap"><div class="progress-strip" aria-hidden="true">' + lit
-      + '</div><p class="progress-label"><b>' + boardSeen() + '</b> of ' + FILMS.length + ' on the board watched'
-      + (off ? ' &middot; <b>' + off + '</b> off-board' : '') + '</p></div>';
+      + '</div></div>';
 
     if (!rows.length) {
       html += '<p class="empty"><strong>Nothing logged yet.</strong><br>Mark anything watched on the Programme, or add a film below.</p>';
