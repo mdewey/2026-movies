@@ -1038,8 +1038,6 @@
     var out = FILMS.filter(function (f) { return f.status === 'out'; }).length;
     var html = '<header>'
       + '<h1>2026 Programme</h1>'
-      + '<p class="lede">Every film from your <em>2026 movies</em> and <em>Not out yet</em> lists, '
-      + 'merged and put in release order &mdash; and a ranked log of what you have watched.</p>'
       + '<div class="bulbs" aria-hidden="true"></div>'
       + '<div class="stats"><span><b>' + FILMS.length + '</b> films</span>'
       + '<span><b>' + out + '</b> released</span><span><b>' + (FILMS.length - out) + '</b> still to come</span>'
