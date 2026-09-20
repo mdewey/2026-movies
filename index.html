@@ -47,10 +47,6 @@
     pointer-events:none;
   }
   header > * { position:relative; }
-  .eyebrow {
-    font-family:"IBM Plex Mono",ui-monospace,monospace; font-size:.68rem;
-    letter-spacing:.22em; text-transform:uppercase; color:var(--brass); margin:0 0 .85rem;
-  }
   h1 {
     font-family:"Bodoni Moda",Didot,"Bodoni MT",Georgia,serif;
     font-weight:700; font-size:clamp(2.6rem,8.5vw,4.6rem); line-height:.98;
@@ -186,7 +182,6 @@
     font-family:"IBM Plex Mono",ui-monospace,monospace; font-size:.6rem;
     letter-spacing:.15em; text-transform:uppercase; color:var(--dim); margin-right:.4rem;
   }
-  .from { color:var(--dim); }
   .yourtake { margin:.5rem 0 0; font-size:.85rem; color:var(--muted); max-width:60ch; }
   .yourtake .k { color:var(--brass); }
 
@@ -435,7 +430,6 @@
 <body>
 <div class="wrap" id="root">
   <header>
-    <p class="eyebrow">Trello board &ldquo;Things&rdquo; &middot; two lists, combined</p>
     <h1>2026 Programme</h1>
     <p class="lede">Loading the programme&hellip;</p>
   </header>
@@ -903,9 +897,9 @@
     // Only films added through the page can be removed here; the researched 43
     // are rebuilt from .research and would come straight back.
     var unlist = '<button type="button" class="rm unlist" data-id="' + esc(f.id) + '">Remove</button>';
-    var meta = (f.cast ? '<span><span class="k">Cast</span>' + esc(f.cast) + '</span>' : '')
-      + (f.note ? '<span><span class="k">Card</span>&ldquo;' + esc(f.note) + '&rdquo; <span class="from">&middot; ' + esc(f.list) + '</span></span>'
-                : '<span><span class="k">Card</span><span class="from">' + esc(f.list) + '</span></span>');
+    // note and list are still carried in films.json, but they described the
+    // Trello card a film came off, so nothing shows them any more.
+    var meta = f.cast ? '<span><span class="k">Cast</span>' + esc(f.cast) + '</span>' : '';
     return '<li class="film' + (e ? ' is-seen' : '') + '" data-status="' + esc(f.status) + '">'
       + '<div class="strip" aria-hidden="true"></div><div class="rail">' + rail + '</div>'
       + '<div class="entry"><div class="entry-head"><h3 class="title">' + titleHTML + '</h3>'
@@ -914,7 +908,7 @@
       + (f.crew ? '<p class="crew">' + esc(f.crew) + '</p>' : '')
       + '<p class="desc">' + esc(f.desc) + '</p>'
       + (e && e.reason ? '<p class="yourtake"><span class="k">Your take</span>' + esc(e.reason) + '</p>' : '')
-      + '<div class="meta">' + meta + '</div></div></li>';
+      + (meta ? '<div class="meta">' + meta + '</div>' : '') + '</div></li>';
   }
   function addFilmHTML() {
     return '<div class="addbox" id="addfilm"><h3>Add a film to the programme</h3>'
@@ -1043,7 +1037,6 @@
     var n = data.films.length;
     var out = FILMS.filter(function (f) { return f.status === 'out'; }).length;
     var html = '<header>'
-      + '<p class="eyebrow">Trello board &ldquo;Things&rdquo; &middot; two lists, combined</p>'
       + '<h1>2026 Programme</h1>'
       + '<p class="lede">Every film from your <em>2026 movies</em> and <em>Not out yet</em> lists, '
       + 'merged and put in release order &mdash; and a ranked log of what you have watched.</p>'
