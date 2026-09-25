@@ -86,7 +86,7 @@
   "url": "https://en.wikipedia.org/wiki/Ready_or_Not_2:_Here_I_Come",
   "list": "2026 movies",
   "note": "",
-  "withPartner": false,
+  "withPartner": true,
   "search": "ready or not 2: here i come grace survived the le domas family's deadly wedding-night ritual, and finds that surviving was only the beginning. samara weaving returns, with kathryn newton and sarah michelle gellar. matt bettinelli-olpin, tyler gillett (directors); guy busick, r. christopher murphy (screenplay) samara weaving, kathryn newton, sarah michelle gellar, shawn hatosy, david cronenberg + 1 more "
  },
  {
@@ -122,7 +122,7 @@
   "url": "https://en.wikipedia.org/wiki/The_Drama_(film)",
   "list": "2026 movies",
   "note": "Drama",
-  "withPartner": false,
+  "withPartner": true,
   "search": "the drama zendaya and robert pattinson play a happily engaged couple whose relationship is upended by an unexpected revelation in the week before their wedding. kristoffer borgli (director/screenplay) zendaya, robert pattinson, alana haim, mamoudou athie, hailey benton gates drama"
  },
  {
@@ -144,24 +144,6 @@
   "search": "everyone is lying to you for money ben mckenzie's documentary takedown of the cryptocurrency industry — the hype, the celebrity endorsements and the fraud that powered its rise. ben mckenzie (director/screenplay)  "
  },
  {
-  "id": "lee-cronin-s-the-mummy",
-  "title": "Lee Cronin's The Mummy",
-  "month": "April",
-  "day": "17",
-  "release": "April 17, 2026",
-  "status": "out",
-  "statusLabel": "Released",
-  "director": "Lee Cronin",
-  "crew": "Lee Cronin (director/screenplay)",
-  "cast": "Jack Reynor, Laia Costa, May Calamawy, Verónica Falcón, Natalie Grace",
-  "desc": "A family is reunited with their long-missing, partially mummified daughter, and slowly realizes she is possessed.",
-  "url": "https://en.wikipedia.org/wiki/Lee_Cronin's_The_Mummy",
-  "list": "2026 movies",
-  "note": "",
-  "withPartner": false,
-  "search": "lee cronin's the mummy a family is reunited with their long-missing, partially mummified daughter, and slowly realizes she is possessed. lee cronin (director/screenplay) jack reynor, laia costa, may calamawy, verónica falcón, natalie grace "
- },
- {
   "id": "mother-mary",
   "title": "Mother Mary",
   "month": "April",
@@ -176,8 +158,27 @@
   "url": "https://en.wikipedia.org/wiki/Mother_Mary_(2026_film)",
   "list": "2026 movies",
   "note": "",
-  "withPartner": false,
+  "withPartner": true,
   "search": "mother mary david lowery's drama with anne hathaway as a pop star whose reunion with her former costume designer (michaela coel) forces her to face her past. david lowery (director/screenplay) anne hathaway, michaela coel, hunter schafer, atheena frizzell, kaia gerber + 5 more "
+ },
+ {
+  "id": "the-sheep-detectives",
+  "title": "The Sheep Detectives",
+  "month": "May",
+  "day": "8",
+  "release": "May 8, 2026",
+  "status": "out",
+  "statusLabel": "Released",
+  "director": "Kyle Balda",
+  "crew": "Kyle Balda (director); Craig Mazin (screenplay)",
+  "cast": "Hugh Jackman, Nicholas Braun, Nicholas Galitzine, Molly Gordon, Julia Louis-Dreyfus + 1 more",
+  "desc": "A flock of sheep attempt to solve the murder of their shepherd, George Hardy, after he is discovered dead outside his trailer. Led by crime enthusiast ewe Lily, memory-keeper ram Mopple, and former carnival fighter Sebastian, the sheep investigate while the townspeople become entangled in a mystery involving George's secret wealth and newly discovered adult children.",
+  "url": "https://en.wikipedia.org/wiki/The_Sheep_Detectives",
+  "list": "Added here",
+  "note": "",
+  "withPartner": true,
+  "addedHere": true,
+  "search": "the sheep detectives a flock of sheep attempt to solve the murder of their shepherd, george hardy, after he is discovered dead outside his trailer. led by crime enthusiast ewe lily, memory-keeper ram mopple, and former carnival fighter sebastian, the sheep investigate while the townspeople become entangled in a mystery involving george's secret wealth and newly discovered adult children. kyle balda (director); craig mazin (screenplay) hugh jackman, nicholas braun, nicholas galitzine, molly gordon, julia louis-dreyfus + 1 more "
  },
  {
   "id": "obsession",
@@ -194,7 +195,7 @@
   "url": "https://en.wikipedia.org/wiki/Obsession_(2025_film)",
   "list": "2026 movies",
   "note": "Obession",
-  "withPartner": false,
+  "withPartner": true,
   "search": "obsession a music-store clerk buys a supernatural toy and wishes for his friend to fall in love with him. she does — catastrophically. curry barker (director/screenplay) michael johnston, inde navarrette, cooper tomlinson, megan lawless, andy richter obession"
  },
  {
@@ -270,6 +271,25 @@
   "search": "the end (short film) niki lindroth von bahr's 15-minute stop-motion film — a deadpan tale of death and existence set in a vast international airport, where pig employees watch reality tv and a dolphin works the smoothie bar. premiered in the short film competition at cannes. niki lindroth von bahr (director/screenplay); jen silverman (screenplay) alexander skarsgård, anna mouglalis, noomi rapace, denis lavant "
  },
  {
+  "id": "masters-of-the-universe",
+  "title": "Masters of the Universe",
+  "month": "June",
+  "day": "5",
+  "release": "June 5, 2026",
+  "status": "out",
+  "statusLabel": "Released",
+  "director": "Travis Knight",
+  "crew": "Travis Knight (director); Chris Butler, Aaron Nee, Adam Nee, David Callaham (screenplay)",
+  "cast": "Nicholas Galitzine, Camila Mendes, Alison Brie, James Purefoy, Morena Baccarin + 1 more",
+  "desc": "Prince Adam returns to his home planet Eternia after fifteen years on Earth and must embrace his destiny as He-Man to save his world from the evil Skeletor, alongside allies including Teela and Duncan.",
+  "url": "https://en.wikipedia.org/wiki/Masters_of_the_Universe_(2026_film)",
+  "list": "Added here",
+  "note": "",
+  "withPartner": true,
+  "addedHere": true,
+  "search": "masters of the universe prince adam returns to his home planet eternia after fifteen years on earth and must embrace his destiny as he-man to save his world from the evil skeletor, alongside allies including teela and duncan. travis knight (director); chris butler, aaron nee, adam nee, david callaham (screenplay) nicholas galitzine, camila mendes, alison brie, james purefoy, morena baccarin + 1 more "
+ },
+ {
   "id": "the-death-of-robin-hood",
   "title": "The Death of Robin Hood",
   "month": "June",
@@ -324,6 +344,25 @@
   "search": "the invite olivia wilde's sex comedy about a san francisco couple whose evening gets complicated when the wife invites their upstairs neighbors over. with seth rogen. olivia wilde (director); rashida jones, will mccormack (screenplay) seth rogen, olivia wilde, penélope cruz, edward norton "
  },
  {
+  "id": "the-odyssey",
+  "title": "The Odyssey",
+  "month": "July",
+  "day": "17",
+  "release": "July 17, 2026",
+  "status": "out",
+  "statusLabel": "Released",
+  "director": "Christopher Nolan",
+  "crew": "Christopher Nolan (director/screenplay)",
+  "cast": "Matt Damon, Tom Holland, Anne Hathaway, Robert Pattinson, Lupita Nyong'o + 1 more",
+  "desc": "Following the Trojan War, King Odysseus of Ithaca embarks on a perilous journey home, encountering mythical beings and divine challenges. His wife Penelope faces pressure from suitors seeking to claim the throne, while their son Telemachus searches for his father.",
+  "url": "https://en.wikipedia.org/wiki/The_Odyssey_(2026_film)",
+  "list": "Added here",
+  "note": "",
+  "withPartner": true,
+  "addedHere": true,
+  "search": "the odyssey following the trojan war, king odysseus of ithaca embarks on a perilous journey home, encountering mythical beings and divine challenges. his wife penelope faces pressure from suitors seeking to claim the throne, while their son telemachus searches for his father. christopher nolan (director/screenplay) matt damon, tom holland, anne hathaway, robert pattinson, lupita nyong'o + 1 more "
+ },
+ {
   "id": "avatar-aang-the-last-airbender",
   "title": "Avatar Aang: The Last Airbender",
   "month": "July",
@@ -338,7 +377,7 @@
   "url": "https://en.wikipedia.org/wiki/Avatar_Aang:_The_Last_Airbender",
   "list": "2026 movies",
   "note": "avatar airbender",
-  "withPartner": false,
+  "withPartner": true,
   "search": "avatar aang: the last airbender animated continuation of the avatar saga, in which aang and his friends find tagah, a surviving airbender, and go looking for a staff that could bring the air nomads back. lauren montgomery (director); tim hedrick, christopher yost (screenplay) eric nam, dave bautista, steven yeun, jessica matten, román zaragoza + 8 more avatar airbender"
  },
  {
@@ -360,6 +399,25 @@
   "search": "i want your sex gregg araki's erotic thriller, in which a young man working for a provocative contemporary artist (olivia wilde) is pulled deep into her orbit. gregg araki (director/screenplay); karley sciortino (screenplay) olivia wilde, cooper hoffman, mason gooding, chase sui wonders, johnny knoxville + 4 more "
  },
  {
+  "id": "spider-man-brand-new-day",
+  "title": "Spider-Man: Brand New Day",
+  "month": "July",
+  "day": "31",
+  "release": "July 31, 2026",
+  "status": "out",
+  "statusLabel": "Released",
+  "director": "Destin Daniel Cretton",
+  "crew": "Destin Daniel Cretton (director); Chris McKenna, Erik Sommers (screenplay)",
+  "cast": "Tom Holland, Zendaya, Sadie Sink, Jacob Batalon, Jon Bernthal + 1 more",
+  "desc": "After Dr. Strange's spell makes the world forget Peter Parker's identity, he dedicates himself to anonymously protecting New York City as Spider-Man while his powers evolve. A telepathic young mutant named Jean Grey begins possessing people to find her kidnapped sister.",
+  "url": "https://en.wikipedia.org/wiki/Spider-Man:_Brand_New_Day",
+  "list": "Added here",
+  "note": "",
+  "withPartner": false,
+  "addedHere": true,
+  "search": "spider-man: brand new day after dr. strange's spell makes the world forget peter parker's identity, he dedicates himself to anonymously protecting new york city as spider-man while his powers evolve. a telepathic young mutant named jean grey begins possessing people to find her kidnapped sister. destin daniel cretton (director); chris mckenna, erik sommers (screenplay) tom holland, zendaya, sadie sink, jacob batalon, jon bernthal + 1 more "
+ },
+ {
   "id": "teenage-sex-and-death-at-camp-miasma",
   "title": "Teenage Sex and Death at Camp Miasma",
   "month": "August",
@@ -374,7 +432,7 @@
   "url": "https://en.wikipedia.org/wiki/Teenage_Sex_and_Death_at_Camp_Miasma",
   "list": "2026 movies",
   "note": "",
-  "withPartner": false,
+  "withPartner": true,
   "search": "teenage sex and death at camp miasma jane schoenbrun's meta-slasher, in which a filmmaker hired to reboot a horror franchise becomes fixated on casting the original final girl. hannah einbinder and gillian anderson star. jane schoenbrun (director/screenplay) hannah einbinder, gillian anderson, jack haven, patrick fischler "
  },
  {
@@ -430,24 +488,6 @@
   "note": "",
   "withPartner": false,
   "search": "it ends four recent graduates on a late-night drive turn onto a two-lane highway that simply never ends. alexander ullom (director/screenplay) phinehas yoon, akira jackson, noah toth, mitchell cole "
- },
- {
-  "id": "the-dog-stars",
-  "title": "The Dog Stars",
-  "month": "August",
-  "day": "28",
-  "release": "August 28, 2026",
-  "status": "out",
-  "statusLabel": "Released",
-  "director": "Ridley Scott",
-  "crew": "Ridley Scott (director); Mark L. Smith (screenplay)",
-  "cast": "Jacob Elordi, Josh Brolin, Margaret Qualley, Allison Janney, Benedict Wong + 1 more",
-  "desc": "Ridley Scott's adaptation of Peter Heller's novel. Years after a flu pandemic emptied the world, a pilot living on a Colorado airfield with his dog and a volatile survivalist follows a radio signal into the unknown.",
-  "url": "https://en.wikipedia.org/wiki/The_Dog_Stars_(film)",
-  "list": "2026 movies",
-  "note": "",
-  "withPartner": false,
-  "search": "the dog stars ridley scott's adaptation of peter heller's novel. years after a flu pandemic emptied the world, a pilot living on a colorado airfield with his dog and a volatile survivalist follows a radio signal into the unknown. ridley scott (director); mark l. smith (screenplay) jacob elordi, josh brolin, margaret qualley, allison janney, benedict wong + 1 more "
  },
  {
   "id": "buddy",
@@ -546,8 +586,8 @@
   "month": "September",
   "day": "25",
   "release": "September 25, 2026",
-  "status": "upcoming",
-  "statusLabel": "Coming soon",
+  "status": "out",
+  "statusLabel": "Released",
   "director": "Lance Oppenheim",
   "crew": "Lance Oppenheim (director); Ajon Singh (screenplay)",
   "cast": "Robert Pattinson, Merritt Wever, Skyler Gisondo, Phoebe Bridgers, Matthew Maher + 2 more",
@@ -555,7 +595,7 @@
   "url": "https://en.wikipedia.org/wiki/Primetime_(2026_film)",
   "list": "Not out yet",
   "note": "",
-  "withPartner": true,
+  "withPartner": false,
   "search": "primetime robert pattinson plays chris hansen at the height of to catch a predator, in lance oppenheim's first narrative feature. lance oppenheim (director); ajon singh (screenplay) robert pattinson, merritt wever, skyler gisondo, phoebe bridgers, matthew maher + 2 more "
  },
  {
@@ -645,7 +685,7 @@
   "url": "https://en.wikipedia.org/wiki/Wicker_(film)",
   "list": "Not out yet",
   "note": "",
-  "withPartner": false,
+  "withPartner": true,
   "search": "wicker in a rigidly patriarchal medieval town, an ostracized fisherwoman sarcastically commissions a husband woven from wicker — and the weaver brings him to life. with olivia colman. alex huston fischer, eleanor wilson (directors/screenplay) olivia colman, alexander skarsgård, elizabeth debicki, marli siu, nabhaan rizwan + 2 more "
  },
  {
@@ -682,7 +722,7 @@
   "url": "https://en.wikipedia.org/wiki/Wild_Horse_Nine",
   "list": "Not out yet",
   "note": "",
-  "withPartner": false,
+  "withPartner": true,
   "search": "wild horse nine martin mcdonagh sends two cia officers to easter island on the eve of the 1973 chilean coup. with sam rockwell, john malkovich and steve buscemi. martin mcdonagh (director/screenplay) john malkovich, sam rockwell, steve buscemi, tom waits, parker posey "
  },
  {
@@ -718,7 +758,7 @@
   "url": "https://en.wikipedia.org/wiki/Paper_Tiger_(2026_film)",
   "list": "Not out yet",
   "note": "",
-  "withPartner": false,
+  "withPartner": true,
   "search": "paper tiger james gray's crime drama about two brothers chasing a business opportunity in 1980s queens who get tangled up with the russian mafia. with adam driver and scarlett johansson. james gray (director/screenplay) adam driver, scarlett johansson, miles teller "
  },
  {
@@ -756,6 +796,25 @@
   "note": "",
   "withPartner": false,
   "search": "violent night 2 stripped of his magic and stuck on the naughty list, santa claus takes on a gangster terrorizing a small town. david harbour returns. tommy wirkola (director); pat casey, josh miller (screenplay) david harbour, kristen bell, jared harris, joe pantoliano, maxwell friedman + 2 more "
+ },
+ {
+  "id": "the-debut",
+  "title": "The Debut",
+  "month": "December",
+  "day": "11",
+  "release": "December 11, 2026",
+  "status": "upcoming",
+  "statusLabel": "Coming soon",
+  "director": "Jesse Eisenberg",
+  "crew": "Jesse Eisenberg (director)",
+  "cast": "",
+  "desc": "When Mona Friedman is cast in a bit part at a small community theater, she transforms from a shy, unassuming housewife into a zealous method actor willing to do anything to protect the artistic integrity of her marginal role—even if it means waging war against the show’s domineering director.",
+  "url": null,
+  "list": "Added here",
+  "note": "",
+  "withPartner": false,
+  "addedHere": true,
+  "search": "the debut when mona friedman is cast in a bit part at a small community theater, she transforms from a shy, unassuming housewife into a zealous method actor willing to do anything to protect the artistic integrity of her marginal role—even if it means waging war against the show’s domineering director. jesse eisenberg (director)"
  },
  {
   "id": "avengers-doomsday",
