@@ -252,6 +252,7 @@
   .wrow[data-grade^="D"] .gbadge,
   .wrow[data-grade^="E"] .gbadge,
   .wrow[data-grade^="F"] .gbadge { background:var(--soon); color:#1b0f0c; }
+  .wrow[data-grade="DNF"] .gbadge { background:transparent; color:var(--muted); box-shadow:inset 0 0 0 1px var(--muted); }
   .wmeta { margin:.28rem 0 0; font-size:.79rem; color:var(--muted); font-style:italic; }
   .wreason { margin:.45rem 0 0; max-width:60ch; }
   .wctl { display:flex; flex-wrap:wrap; gap:.45rem; align-items:center; margin-top:.6rem; }
@@ -440,7 +441,7 @@
 (function () {
   "use strict";
 
-  var GRADES = ['A+','A','A-','B+','B','B-','C+','C','C-','D+','D','D-','E+','E','E-','F'];
+  var GRADES = ['A+','A','A-','B+','B','B-','C+','C','C-','D+','D','D-','E+','E','E-','F','DNF'];
 
   var FILMS = [], MOVIES = null, data = { _readme: [], films: [] };
   var byId = {};

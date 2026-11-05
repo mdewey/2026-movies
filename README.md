@@ -86,7 +86,8 @@ collapses to one line rather than forty.
 ```
 
 - `rank` — 1 is liked most. The site renumbers to keep them contiguous.
-- `grade` — `A`–`F`, optionally with `+` or `-`. `""` means ungraded.
+- `grade` — `A`–`F`, optionally with `+` or `-`, or `DNF` (did not finish,
+  ranks below `F`). `""` means ungraded.
 - `filmId` — an `id` from `films.json`, linking the entry to a board film so it
   also shows as watched in the Programme. `null` for a film that was never on
   the board — or one you have since removed — which then supplies its own
