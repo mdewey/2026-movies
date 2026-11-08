@@ -573,7 +573,7 @@
   "url": "https://en.wikipedia.org/wiki/Wicker_(film)",
   "list": "Not out yet",
   "note": "",
-  "withPartner": false,
+  "withPartner": true,
   "search": "wicker in a rigidly patriarchal medieval town, an ostracized fisherwoman sarcastically commissions a husband woven from wicker — and the weaver brings him to life. with olivia colman. alex huston fischer, eleanor wilson (directors/screenplay) olivia colman, alexander skarsgård, elizabeth debicki, marli siu, nabhaan rizwan + 2 more "
  },
  {
@@ -601,8 +601,8 @@
   "month": "November",
   "day": "6",
   "release": "November 6, 2026",
-  "status": "upcoming",
-  "statusLabel": "Coming soon",
+  "status": "out",
+  "statusLabel": "Released",
   "director": "Martin McDonagh",
   "crew": "Martin McDonagh (director/screenplay)",
   "cast": "John Malkovich, Sam Rockwell, Steve Buscemi, Tom Waits, Parker Posey",
