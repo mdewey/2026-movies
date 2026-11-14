@@ -37,7 +37,8 @@
       "title": "Masters of the Universe",
       "filmId": "masters-of-the-universe",
       "grade": "B",
-      "reason": ""
+      "reason": "",
+      "withPartner": true
     },
     {
       "rank": 7,
