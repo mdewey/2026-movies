@@ -29,7 +29,8 @@
       "title": "The Sheep Detectives",
       "filmId": "the-sheep-detectives",
       "grade": "B+",
-      "reason": "Funny sheep make me smile"
+      "reason": "Funny sheep make me smile",
+      "withPartner": true
     },
     {
       "rank": 9,
@@ -43,7 +44,8 @@
       "title": "The Odyssey",
       "filmId": "the-odyssey",
       "grade": "B",
-      "reason": ""
+      "reason": "",
+      "withPartner": true
     },
     {
       "rank": 13,
